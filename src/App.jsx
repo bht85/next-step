@@ -5,16 +5,16 @@ import {
   AlertCircle, CheckCircle2, Paperclip, ArrowRightLeft, MoreHorizontal, X, 
   History, Phone, Mail, Calendar, Sparkles, Loader2, Repeat, Timer, Target, 
   Link as LinkIcon, TrendingUp, Settings, CreditCard, Shield, Zap, BarChart3, 
-  ChevronDown, Award, Star, MessageSquare, PieChart, LogOut, ToggleLeft, ToggleRight
+  ChevronDown, Award, Star, MessageSquare, PieChart, LogOut, UserMinus, Briefcase as DeptIcon, RefreshCw
 } from 'lucide-react';
 
 // --- 초기 데이터 ---
 
 const initialUsers = [
-  { id: 'user1', name: '김철수 대리', team: '마케팅팀', role: '퍼포먼스 마케터', phone: '010-1234-5678', email: 'cs.kim@nextstep.com' },
-  { id: 'user2', name: '이영희 과장', team: '개발팀', role: 'FE 리드', phone: '010-9876-5432', email: 'yh.lee@nextstep.com' },
-  { id: 'user3', name: '박지민 사원', team: '인사팀', role: '채용 담당', phone: '010-5555-3333', email: 'jm.park@nextstep.com' },
-  { id: 'user4', name: '최신입 사원', team: '마케팅팀', role: '주니어 마케터', phone: '010-7777-8888', email: 'new.choi@nextstep.com' },
+  { id: 'user1', name: '김철수 대리', team: '마케팅팀', role: '퍼포먼스 마케터', phone: '010-1234-5678', email: 'cs.kim@nextstep.com', status: 'active', joinDate: '2023-01-10' },
+  { id: 'user2', name: '이영희 과장', team: '개발팀', role: 'FE 리드', phone: '010-9876-5432', email: 'yh.lee@nextstep.com', status: 'active', joinDate: '2022-05-15' },
+  { id: 'user3', name: '박지민 사원', team: '인사팀', role: '채용 담당', phone: '010-5555-3333', email: 'jm.park@nextstep.com', status: 'active', joinDate: '2024-03-02' },
+  { id: 'user4', name: '최신입 사원', team: '마케팅팀', role: '주니어 마케터', phone: '010-7777-8888', email: 'new.choi@nextstep.com', status: 'active', joinDate: '2025-01-01' },
 ];
 
 const initialKPIs = [
@@ -111,6 +111,8 @@ const initialReviews = [
   }
 ];
 
+// 조직도 구조는 이제 users 데이터와 동기화하여 동적으로 보여줄 수도 있지만, 
+// 여기서는 시각적 트리 구조를 유지하기 위해 별도 상태로 두되, 관리자에서 변경 시 업데이트하도록 함
 const initialOrgChart = {
   name: "김대표 CEO",
   role: "대표이사",
@@ -122,7 +124,7 @@ const initialOrgChart = {
       name: "마케팅팀",
       type: "department",
       children: [
-        { name: "최팀장", role: "마케팅 팀장", hasRnR: true, email: "mkt.lead@nextstep.com", phone: "010-1234-1111" },
+        { name: "최팀장", role: "마케팅 팀장", hasRnR: true, email: "mkt.lead@nextstep.com", phone: "010-1234-1111", id: 'mkt_lead' },
         { name: "김철수 대리", role: "퍼포먼스 마케터", hasRnR: true, id: 'user1' }, 
         { name: "최신입 사원", role: "주니어 마케터", hasRnR: false, id: 'user4' }
       ]
@@ -131,7 +133,7 @@ const initialOrgChart = {
       name: "개발팀",
       type: "department",
       children: [
-        { name: "정팀장", role: "CTO", hasRnR: true, email: "cto@nextstep.com", phone: "010-9999-9999" },
+        { name: "정팀장", role: "CTO", hasRnR: true, email: "cto@nextstep.com", phone: "010-9999-9999", id: 'dev_lead' },
         { name: "이영희 과장", role: "FE 리드", hasRnR: true, id: 'user2' }
       ]
     }
@@ -194,6 +196,7 @@ export default function NextStepApp() {
   const [reviews, setReviews] = useState(() => JSON.parse(localStorage.getItem('ns_reviews')) || initialReviews);
   const [orgData, setOrgData] = useState(() => JSON.parse(localStorage.getItem('ns_orgData')) || initialOrgChart);
 
+  // Sync to LocalStorage
   useEffect(() => { localStorage.setItem('ns_users', JSON.stringify(users)); }, [users]);
   useEffect(() => { localStorage.setItem('ns_tasks', JSON.stringify(tasks)); }, [tasks]);
   useEffect(() => { localStorage.setItem('ns_kpis', JSON.stringify(kpis)); }, [kpis]);
@@ -205,45 +208,49 @@ export default function NextStepApp() {
   const [selectedEvalPeriod, setSelectedEvalPeriod] = useState('2025 1Q');
   const [selectedEvalUser, setSelectedEvalUser] = useState('user1'); 
   const [evalViewType, setEvalViewType] = useState('individual');
-  const [rnrViewMode, setRnrViewMode] = useState('team'); // 'team' or 'user' (New)
-  const [isOrgEditMode, setIsOrgEditMode] = useState(false); // Org Edit Mode (New)
+  const [rnrViewMode, setRnrViewMode] = useState('team'); 
+  const [isOrgEditMode, setIsOrgEditMode] = useState(false);
+  const [adminTab, setAdminTab] = useState('hr'); // 'hr' or 'subscription' (New)
   
   // Modals
   const [transferModalOpen, setTransferModalOpen] = useState(false);
   const [historyModalOpen, setHistoryModalOpen] = useState(false); 
   const [selectedTask, setSelectedTask] = useState(null);
   const [showWriteModal, setShowWriteModal] = useState(false);
-  const [showAddMemberModal, setShowAddMemberModal] = useState(false); // New Member Modal
-  const [targetDeptForAdd, setTargetDeptForAdd] = useState("");
+  const [showAddMemberModal, setShowAddMemberModal] = useState(false);
+  const [targetDeptForAdd, setTargetDeptForAdd] = useState(""); // 부서 선택 상태
   
   // AI States
   const [aiInsightOpen, setAiInsightOpen] = useState(false);
   const [aiInsightResult, setAiInsightResult] = useState("");
   const [isAiLoading, setIsAiLoading] = useState(false);
   
-  // Write Form State
+  // Forms
   const [newDocTitle, setNewDocTitle] = useState("");
   const [newDocContent, setNewDocContent] = useState("");
   const [newDocTime, setNewDocTime] = useState(""); 
   const [newDocFreq, setNewDocFreq] = useState("");
   const [selectedKpi, setSelectedKpi] = useState(""); 
   const [isAiWriting, setIsAiWriting] = useState(false);
-
-  // Add Member Form State
   const [newMemberName, setNewMemberName] = useState("");
   const [newMemberRole, setNewMemberRole] = useState("");
 
   // --- Helpers ---
+  // Active users only helper
+  const activeUsers = useMemo(() => users.filter(u => u.status !== 'resigned'), [users]);
   const years = useMemo(() => [...new Set(kpis.map(k => k.year))].sort().reverse(), [kpis]);
-  const teams = useMemo(() => [...new Set(kpis.map(k => k.team))], [kpis]);
+  const teams = useMemo(() => {
+      // Extract teams from active users + existing KPIs + Org chart logic
+      const teamSet = new Set(kpis.map(k => k.team));
+      activeUsers.forEach(u => teamSet.add(u.team));
+      return [...teamSet].filter(Boolean);
+  }, [kpis, activeUsers]);
   
   const getUserInfo = (id, name) => {
     const found = users.find(u => u.id === id);
     if (found) return found;
     return users.find(u => u.name === name) || { phone: '-', email: '-' };
   };
-
-  const getKpiInfo = (kpiId) => kpis.find(k => k.id === kpiId);
 
   const calculateAchievement = (kpi) => {
     if (kpi.type === 'QUAL') return 0; 
@@ -267,8 +274,7 @@ export default function NextStepApp() {
   };
 
   // --- Handlers ---
-  // ... (Existing handlers: Transfer, AI Draft, AI Insight, Save Task) ...
-  const handleTransfer = (targetUserId) => {
+  const handleTransfer = (targetUserId) => { /* ... existing ... */ 
     if (!selectedTask) return;
     const currentUser = users.find(u => u.id === selectedTask.ownerId);
     const targetUser = users.find(u => u.id === targetUserId);
@@ -280,60 +286,172 @@ export default function NextStepApp() {
   const handleAiInsight = async () => { setAiInsightOpen(true); setIsAiLoading(true); const res = await generateAIContent("분석 요청"); setAiInsightResult(res); setIsAiLoading(false); };
   const handleSaveNewTask = () => { if (!newDocTitle) return alert('제목 입력'); const newTask = { id: `TASK-${Date.now().toString().slice(-4)}`, ownerId: 'user1', title: newDocTitle, description: newDocContent.slice(0, 50)+"...", docCount: 0, updatedAt: '2025.01.20', timeRequired: newDocTime||'미정', frequency: newDocFreq||'미정', kpiId: selectedKpi||null, history: [] }; setTasks([newTask, ...tasks]); setShowWriteModal(false); alert('저장됨'); };
 
-  // New: Add Member Handler
+  // Member Management Handlers
   const handleAddMember = () => {
-      if (!newMemberName || !newMemberRole) { alert("이름과 직책을 입력해주세요."); return; }
+      if (!newMemberName || !newMemberRole || !targetDeptForAdd) { alert("모든 정보를 입력해주세요."); return; }
       
       const newId = `user${Date.now()}`;
       const newUser = {
           id: newId,
           name: newMemberName,
           role: newMemberRole,
-          team: targetDeptForAdd, // 부서명
+          team: targetDeptForAdd,
           email: `${newId}@nextstep.com`,
-          phone: "010-0000-0000"
+          phone: "010-0000-0000",
+          status: 'active',
+          joinDate: new Date().toISOString().split('T')[0]
       };
 
-      // 1. 유저 리스트에 추가 (R&R용)
+      // 1. 유저 리스트 추가
       setUsers([...users, newUser]);
 
-      // 2. 조직도 트리에 추가 (Visual용)
+      // 2. 조직도 트리에 추가 (Visual Sync)
       const newOrgData = { ...orgData };
       const deptNode = newOrgData.children.find(c => c.name === targetDeptForAdd);
       if (deptNode) {
           if (!deptNode.children) deptNode.children = [];
           deptNode.children.push({ name: newMemberName, role: newMemberRole, hasRnR: false, id: newId });
       } else {
-          // 최상위 직속이거나 예외 처리 (여기선 간단히 루트에 추가하지 않음)
-          alert("부서를 찾을 수 없습니다.");
-          return;
+          // 부서가 없으면 새로 생성 (Admin에서 부서 추가 시에도 사용 가능하나 여기선 간소화)
+          newOrgData.children.push({
+              name: targetDeptForAdd,
+              type: "department",
+              children: [{ name: newMemberName, role: newMemberRole, hasRnR: false, id: newId }]
+          });
       }
       setOrgData(newOrgData);
 
       setShowAddMemberModal(false);
       setNewMemberName("");
       setNewMemberRole("");
-      alert(`${newMemberName}님이 ${targetDeptForAdd}에 추가되었습니다.`);
+      alert(`${newMemberName}님이 등록되었습니다.`);
+  };
+
+  const handleResignMember = (userId) => {
+      if (!window.confirm("정말 퇴사 처리하시겠습니까? 이 작업은 되돌리기 어렵습니다.")) return;
+      
+      // 1. 유저 상태 변경
+      const updatedUsers = users.map(u => u.id === userId ? { ...u, status: 'resigned', leaveDate: new Date().toISOString().split('T')[0] } : u);
+      setUsers(updatedUsers);
+
+      // 2. 조직도에서 제거 (Visual Sync)
+      const newOrgData = { ...orgData };
+      newOrgData.children.forEach(dept => {
+          if (dept.children) {
+              dept.children = dept.children.filter(member => member.id !== userId);
+          }
+      });
+      setOrgData(newOrgData);
+      
+      alert("퇴사 처리가 완료되었습니다.");
   };
 
   // --- Views ---
 
   const AdminView = () => (
     <div className="space-y-6 animate-fade-in">
-        <h2 className="text-xl font-bold text-gray-800">관리자 및 구독 설정</h2>
-        <div className="bg-white p-6 rounded-xl border border-gray-200">
-             <h3 className="text-lg font-bold mb-2">Current Plan: {subscriptionData.plan}</h3>
-             <p className="text-gray-500 mb-4">다음 결제일: {subscriptionData.nextBilling}</p>
-             <div className="p-4 bg-gray-50 rounded-lg text-sm text-gray-600">
-                 * 현재 데모 버전에서는 브라우저 저장소(LocalStorage)를 사용하여 데이터를 저장합니다.<br/>
-                 * 브라우저 캐시를 삭제하면 데이터가 초기화됩니다.
-             </div>
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div>
+               <h2 className="text-xl font-bold text-gray-800">관리자 센터</h2>
+               <p className="text-sm text-gray-500">인사 관리 및 시스템 설정을 총괄합니다.</p>
+            </div>
+            <div className="flex bg-gray-100 p-1 rounded-lg text-sm font-medium">
+                <button onClick={() => setAdminTab('hr')} className={`px-4 py-2 rounded-md transition ${adminTab === 'hr' ? 'bg-white text-indigo-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>조직/인사 관리</button>
+                <button onClick={() => setAdminTab('subscription')} className={`px-4 py-2 rounded-md transition ${adminTab === 'subscription' ? 'bg-white text-indigo-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>구독/결제</button>
+            </div>
         </div>
+
+        {adminTab === 'hr' ? (
+            <div className="space-y-6">
+                {/* 1. Quick Stats */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex items-center justify-between">
+                        <div><p className="text-xs text-gray-500 font-bold uppercase">총 재직 인원</p><p className="text-2xl font-bold text-gray-900">{activeUsers.length}명</p></div>
+                        <div className="bg-blue-50 p-3 rounded-lg text-blue-600"><Users size={20}/></div>
+                    </div>
+                    <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex items-center justify-between">
+                        <div><p className="text-xs text-gray-500 font-bold uppercase">등록된 부서</p><p className="text-2xl font-bold text-gray-900">{teams.length}개</p></div>
+                        <div className="bg-indigo-50 p-3 rounded-lg text-indigo-600"><Briefcase size={20}/></div>
+                    </div>
+                    <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex items-center justify-between">
+                        <div><p className="text-xs text-gray-500 font-bold uppercase">퇴사자 (누적)</p><p className="text-2xl font-bold text-gray-900">{users.filter(u=>u.status==='resigned').length}명</p></div>
+                        <div className="bg-orange-50 p-3 rounded-lg text-orange-600"><UserMinus size={20}/></div>
+                    </div>
+                </div>
+
+                {/* 2. Employee Management */}
+                <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                    <div className="p-5 border-b border-gray-100 flex flex-col md:flex-row justify-between items-center gap-4">
+                        <h3 className="font-bold text-gray-800 flex items-center"><Users size={18} className="mr-2 text-indigo-600"/>임직원 통합 관리</h3>
+                        <button 
+                            onClick={() => { setTargetDeptForAdd(""); setShowAddMemberModal(true); }}
+                            className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-indigo-700 transition flex items-center"
+                        >
+                            <Plus size={16} className="mr-2"/> 신규 입사자 등록
+                        </button>
+                    </div>
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-sm text-left text-gray-600">
+                            <thead className="bg-gray-50 text-xs text-gray-500 uppercase font-bold">
+                                <tr>
+                                    <th className="px-6 py-3">이름 / 연락처</th>
+                                    <th className="px-6 py-3">부서 / 직책</th>
+                                    <th className="px-6 py-3">상태</th>
+                                    <th className="px-6 py-3">입사일</th>
+                                    <th className="px-6 py-3 text-right">관리</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-100">
+                                {users.map(u => (
+                                    <tr key={u.id} className="hover:bg-gray-50 transition">
+                                        <td className="px-6 py-4">
+                                            <div className="font-bold text-gray-900">{u.name}</div>
+                                            <div className="text-xs text-gray-400">{u.email}</div>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <Badge color="blue">{u.team}</Badge>
+                                            <div className="mt-1 text-xs">{u.role}</div>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            {u.status === 'resigned' ? 
+                                                <span className="bg-red-100 text-red-700 px-2 py-1 rounded text-xs font-bold">퇴사</span> : 
+                                                <span className="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-bold">재직중</span>
+                                            }
+                                        </td>
+                                        <td className="px-6 py-4">{u.joinDate}</td>
+                                        <td className="px-6 py-4 text-right">
+                                            {u.status !== 'resigned' && (
+                                                <button 
+                                                    onClick={() => handleResignMember(u.id)}
+                                                    className="text-red-500 hover:bg-red-50 px-3 py-1.5 rounded border border-red-200 text-xs font-medium transition"
+                                                >
+                                                    퇴사 처리
+                                                </button>
+                                            )}
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        ) : (
+            // Subscription Tab
+            <div className="bg-white p-6 rounded-xl border border-gray-200">
+                 <h3 className="text-lg font-bold mb-2">Current Plan: {subscriptionData.plan}</h3>
+                 <p className="text-gray-500 mb-4">다음 결제일: {subscriptionData.nextBilling}</p>
+                 <div className="p-4 bg-gray-50 rounded-lg text-sm text-gray-600">
+                     * 현재 데모 버전에서는 브라우저 저장소(LocalStorage)를 사용하여 데이터를 저장합니다.<br/>
+                     * 브라우저 캐시를 삭제하면 데이터가 초기화됩니다.
+                 </div>
+            </div>
+        )}
     </div>
   );
 
   const EvaluationView = () => {
-    // ... (Same Evaluation Logic as before) ...
+    // ... (Same Evaluation Logic) ...
     const EvalHeader = () => (
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
           <div><h2 className="text-xl font-bold text-gray-800">성과 평가 (Performance Review)</h2><p className="text-sm text-gray-500">R&R 및 KPI 달성도를 기반으로 성과를 리뷰합니다.</p></div>
@@ -348,7 +466,6 @@ export default function NextStepApp() {
     );
 
     if (evalViewType === 'team') {
-        // Team View Code (Same as previous)
         return (
             <div className="space-y-6 animate-fade-in">
               <EvalHeader />
@@ -356,7 +473,7 @@ export default function NextStepApp() {
                 {teams.map(team => {
                    const teamKpis = kpis.filter(k => k.team === team && k.year === '2025');
                    const quantKpis = teamKpis.filter(k => k.type === 'QUANT');
-                   const teamMembers = users.filter(u => u.team === team);
+                   const teamMembers = activeUsers.filter(u => u.team === team); // Only Active Users
                    const avgAchievement = quantKpis.length > 0 ? Math.round(quantKpis.reduce((acc, k) => acc + calculateAchievement(k), 0) / quantKpis.length) : 0;
                    return (
                      <div key={team} className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
@@ -370,8 +487,77 @@ export default function NextStepApp() {
             </div>
         );
     }
-    // Individual View Code (Same as previous, shortened for brevity)
-    return <div className="space-y-6 animate-fade-in"><EvalHeader /><div className="bg-white p-10 text-center text-gray-500">인원별 상세 평가 화면 (이전 버전과 동일)</div></div>;
+    
+    // Individual View
+    const targetUser = activeUsers.find(u => u.id === selectedEvalUser) || activeUsers[0];
+    if (!targetUser) return <div className="p-10 text-center">평가할 대상이 없습니다.</div>;
+
+    const userKpis = kpis.filter(k => k.year === '2025' && (k.team === targetUser.team || k.team === '전사'));
+    const userReview = reviews.find(r => r.userId === targetUser.id && r.period === selectedEvalPeriod);
+
+    return (
+        <div className="space-y-6 animate-fade-in">
+            <EvalHeader />
+            <div className="flex flex-col md:flex-row gap-6">
+                <div className="w-full md:w-64 bg-white rounded-xl shadow-sm border border-gray-200 p-4 h-fit">
+                    <h3 className="text-sm font-bold text-gray-500 uppercase mb-3">평가 대상자</h3>
+                    <div className="space-y-2">
+                        {activeUsers.map(u => (
+                            <button key={u.id} onClick={() => setSelectedEvalUser(u.id)} className={`w-full flex items-center space-x-3 p-2 rounded-lg transition ${targetUser.id === u.id ? 'bg-indigo-50 text-indigo-700 border border-indigo-200' : 'hover:bg-gray-50 text-gray-700'}`}>
+                                <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-xs font-bold">{u.name[0]}</div>
+                                <div className="text-left"><div className="text-sm font-bold">{u.name}</div><div className="text-xs opacity-70">{u.team}</div></div>
+                                {targetUser.id === u.id && <ChevronRight size={16} className="ml-auto"/>}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+                <div className="flex-1 space-y-6">
+                    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 flex justify-between items-center">
+                         <div className="flex items-center space-x-4">
+                            <div className="w-16 h-16 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center text-2xl font-bold">{targetUser.name[0]}</div>
+                            <div>
+                                <h3 className="text-lg font-bold text-gray-900">{targetUser.name} <span className="text-sm text-gray-500 font-normal">| {targetUser.role}</span></h3>
+                                <div className="flex items-center space-x-2 text-sm text-gray-500 mt-1"><Badge color="blue">{targetUser.team}</Badge></div>
+                            </div>
+                         </div>
+                         <div className="text-right"><div className="text-sm text-gray-500 mb-1">현재 등급 (잠정)</div><div className="text-3xl font-bold text-indigo-600">{userReview?.overallGrade || '-'}</div></div>
+                    </div>
+                    {/* ... (Existing Eval Details) ... */}
+                    <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                        <div className="p-4 bg-gray-50 border-b border-gray-200 font-bold text-gray-700 flex justify-between items-center">
+                            <span>KPI 및 R&R 달성도 평가</span><span className="text-xs font-normal text-gray-500">* 정량/정성 지표 포함</span>
+                        </div>
+                        <div className="divide-y divide-gray-100">
+                            {userKpis.map(kpi => {
+                                const evalDetail = userReview?.details?.find(d => d.kpiId === kpi.id);
+                                const isQuant = kpi.type === 'QUANT';
+                                const progress = calculateAchievement(kpi);
+                                return (
+                                    <div key={kpi.id} className="p-6">
+                                        <div className="flex justify-between items-start mb-4">
+                                            <div>
+                                                <div className="flex items-center space-x-2 mb-1"><Badge color={isQuant ? "indigo" : "orange"}>{isQuant ? "정량" : "정성"}</Badge><span className="text-xs text-gray-400">{kpi.id}</span></div>
+                                                <h4 className="text-lg font-bold text-gray-800">{kpi.title}</h4>
+                                            </div>
+                                            <div className="text-right">
+                                                {isQuant ? (<div><div className="text-2xl font-bold text-gray-900">{progress}%</div><div className="text-xs text-gray-500">달성률</div></div>) : 
+                                                (<div className="flex flex-col items-end"><span className="text-sm font-bold text-gray-700 mb-1">상태</span><Badge color="green">{kpi.current}</Badge></div>)}
+                                            </div>
+                                        </div>
+                                        {isQuant && (<div className="w-full bg-gray-100 rounded-full h-2 mb-4"><div className="bg-indigo-600 h-2 rounded-full" style={{ width: `${Math.min(progress, 100)}%` }}></div></div>)}
+                                        <div className="bg-gray-50 rounded-lg p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div><label className="block text-xs font-bold text-gray-500 mb-2">자기 평가</label><div className="flex items-center space-x-3"><select className="bg-white border border-gray-300 rounded px-2 py-1 text-sm font-bold" defaultValue={evalDetail?.selfGrade || "B"}><option value="S">S</option><option value="A">A</option><option value="B">B</option></select><input type="text" className="flex-1 border-b border-gray-300 bg-transparent text-sm py-1 outline-none" placeholder="코멘트..." defaultValue={evalDetail?.comment} /></div></div>
+                                            <div><label className="block text-xs font-bold text-indigo-500 mb-2">리더 평가</label><div className="flex items-center space-x-3"><select className="bg-white border border-indigo-200 rounded px-2 py-1 text-sm font-bold text-indigo-700" defaultValue={evalDetail?.managerGrade || "B"}><option value="S">S</option><option value="A">A</option><option value="B">B</option></select></div></div>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
   };
 
   const KPIView = () => {
@@ -394,35 +580,32 @@ export default function NextStepApp() {
             </div>
             <div className="absolute right-0 top-0 opacity-10 transform translate-x-10 -translate-y-10"><Network size={200} /></div>
         </div>
-        {/* ... (Existing Dashboard Cards) ... */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
              <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100"><div className="flex items-center space-x-3 text-blue-600 mb-2"><Target size={24} /><h3 className="font-semibold text-gray-700">올해 KPI</h3></div><p className="text-3xl font-bold text-gray-900">{kpis.filter(k=>k.year==='2025').length}개</p></div>
              <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100"><div className="flex items-center space-x-3 text-indigo-600 mb-2"><Briefcase size={24} /><h3 className="font-semibold text-gray-700">전체 업무 카드</h3></div><p className="text-3xl font-bold text-gray-900">{tasks.length}개</p></div>
              <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100"><div className="flex items-center space-x-3 text-emerald-600 mb-2"><FileText size={24} /><h3 className="font-semibold text-gray-700">연결된 자료</h3></div><p className="text-3xl font-bold text-gray-900">{tasks.reduce((acc, curr) => acc + curr.docCount, 0)}건</p></div>
-             <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100"><div className="flex items-center space-x-3 text-purple-600 mb-2"><Users size={24} /><h3 className="font-semibold text-gray-700">구성원</h3></div><p className="text-3xl font-bold text-gray-900">{users.length}명</p></div>
+             <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100"><div className="flex items-center space-x-3 text-purple-600 mb-2"><Users size={24} /><h3 className="font-semibold text-gray-700">재직 인원</h3></div><p className="text-3xl font-bold text-gray-900">{activeUsers.length}명</p></div>
         </div>
     </div>
   );
 
-  // --- UPDATED R&R View (Team View Added) ---
   const RnRView = () => {
-    // Team Grouping Logic
+    // ... (Same RnR Logic) ...
     const teamGroups = useMemo(() => {
         const groups = {};
         teams.forEach(team => {
-            const teamMembers = users.filter(u => u.team === team);
+            const teamMembers = activeUsers.filter(u => u.team === team); // Active Only
             const teamTasks = tasks.filter(t => teamMembers.some(u => u.id === t.ownerId));
             groups[team] = { members: teamMembers, tasks: teamTasks };
         });
         return groups;
-    }, [users, tasks, teams]);
+    }, [activeUsers, tasks, teams]);
 
     return (
         <div className="space-y-6">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div><h2 className="text-xl font-bold text-gray-800">팀별 업무 카드 (R&R Modules)</h2><p className="text-sm text-gray-500">모든 업무는 독립적인 카드로 관리되며, KPI와 연동될 수 있습니다.</p></div>
             <div className="flex space-x-3">
-                {/* View Mode Toggle */}
                 <div className="bg-gray-100 p-1 rounded-lg flex text-sm font-medium">
                     <button onClick={() => setRnrViewMode('team')} className={`px-3 py-1.5 rounded-md transition ${rnrViewMode === 'team' ? 'bg-white text-indigo-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>팀별 보기</button>
                     <button onClick={() => setRnrViewMode('user')} className={`px-3 py-1.5 rounded-md transition ${rnrViewMode === 'user' ? 'bg-white text-indigo-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>인원별 보기</button>
@@ -432,9 +615,8 @@ export default function NextStepApp() {
           </div>
 
           {rnrViewMode === 'user' ? (
-              // Existing User View
               <div className="grid gap-6">
-                 {users.map(user => {
+                 {activeUsers.map(user => {
                     const userTasks = tasks.filter(t => t.ownerId === user.id);
                     if (userTasks.length === 0) return null;
                     return (
@@ -457,7 +639,6 @@ export default function NextStepApp() {
                  })}
               </div>
           ) : (
-              // New Team View
               <div className="space-y-8">
                   {Object.entries(teamGroups).map(([teamName, data]) => (
                       <div key={teamName} className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
@@ -470,7 +651,7 @@ export default function NextStepApp() {
                           </div>
                           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                               {data.tasks.map(task => {
-                                  const owner = users.find(u => u.id === task.ownerId);
+                                  const owner = activeUsers.find(u => u.id === task.ownerId);
                                   return (
                                     <div key={task.id} className="p-4 rounded-xl border border-gray-100 hover:border-indigo-200 bg-gray-50 hover:bg-white hover:shadow-md transition">
                                         <div className="flex justify-between items-start mb-2">
@@ -494,7 +675,6 @@ export default function NextStepApp() {
     );
   };
   
-  // --- UPDATED Org Chart View (Edit Mode Added) ---
   const OrgChartView = () => ( 
      <div className="bg-white p-10 rounded-xl shadow-sm border border-gray-100 overflow-x-auto min-h-[600px] flex flex-col items-center">
         {/* Toggle Edit Mode */}
@@ -606,28 +786,32 @@ export default function NextStepApp() {
         </div>
       )}
 
-      {/* NEW: Add Member Modal */}
+      {/* ADD MEMBER MODAL */}
       {showAddMemberModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl w-full max-w-sm shadow-2xl animate-fade-in-up">
             <div className="p-5 border-b border-gray-100 flex justify-between items-center bg-indigo-600 text-white rounded-t-2xl">
-              <h3 className="text-lg font-bold flex items-center"><UserPlus size={18} className="mr-2"/>팀원 추가</h3>
+              <h3 className="text-lg font-bold flex items-center"><UserPlus size={18} className="mr-2"/>신규 입사자 등록</h3>
               <button onClick={() => setShowAddMemberModal(false)} className="text-indigo-200 hover:text-white"><X size={20}/></button>
             </div>
             <div className="p-6 space-y-4">
-               <div className="bg-gray-50 p-3 rounded-lg text-center text-sm font-bold text-gray-700 mb-2">추가할 부서: <span className="text-indigo-600">{targetDeptForAdd}</span></div>
+               {targetDeptForAdd ? (
+                   <div className="bg-gray-50 p-3 rounded-lg text-center text-sm font-bold text-gray-700 mb-2">소속 부서: <span className="text-indigo-600">{targetDeptForAdd}</span></div>
+               ) : (
+                   <div><label className="block text-sm font-medium text-gray-700 mb-1">소속 부서</label><select value={targetDeptForAdd} onChange={(e) => setTargetDeptForAdd(e.target.value)} className="w-full border rounded-lg px-3 py-2"><option value="">선택하세요</option>{teams.map(t => <option key={t} value={t}>{t}</option>)}</select></div>
+               )}
                <div><label className="block text-sm font-medium text-gray-700 mb-1">이름</label><input type="text" value={newMemberName} onChange={(e) => setNewMemberName(e.target.value)} className="w-full border rounded-lg px-3 py-2" placeholder="홍길동" /></div>
                <div><label className="block text-sm font-medium text-gray-700 mb-1">직책</label><input type="text" value={newMemberRole} onChange={(e) => setNewMemberRole(e.target.value)} className="w-full border rounded-lg px-3 py-2" placeholder="주니어 마케터" /></div>
             </div>
             <div className="p-4 bg-gray-50 rounded-b-2xl flex justify-end space-x-3">
               <button onClick={() => setShowAddMemberModal(false)} className="px-4 py-2 text-gray-600 hover:bg-gray-200 rounded-lg text-sm">취소</button>
-              <button onClick={handleAddMember} className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-sm font-bold">추가하기</button>
+              <button onClick={handleAddMember} className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-sm font-bold">등록하기</button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Modals: Reuse Transfer/History/Insight */}
+      {/* Reuse Modals */}
       {transferModalOpen && selectedTask && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
            <div className="bg-white rounded-2xl w-full max-w-md p-6"><h3 className="text-lg font-bold mb-4">업무 이관</h3><div className="grid gap-2">{users.filter(u=>u.id!==selectedTask.ownerId).map(u=>(<button key={u.id} onClick={()=>handleTransfer(u.id)} className="p-3 border rounded hover:bg-gray-50 text-left">{u.name}</button>))}</div><button onClick={()=>setTransferModalOpen(false)} className="mt-4 w-full py-2 text-gray-500">취소</button></div>
