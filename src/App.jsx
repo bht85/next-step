@@ -161,6 +161,7 @@ export default function NextStepApp() {
 
   // --- Handlers ---
   const handleProFeatureClick = () => { if (currentPlan === 'BASIC') setShowUpgradeModal(true); };
+  
   const handleResetData = () => {
       if(window.confirm("초기화 하시겠습니까?")) {
           localStorage.setItem('ns_users_v2', JSON.stringify(initialUsers));
@@ -183,7 +184,18 @@ export default function NextStepApp() {
     try { await addDoc(collection(db, "tasks"), newTask); } catch (e) { console.log("DB Error (Local OK)"); }
     setShowWriteModal(false); alert(`업무 등록 완료 (${newTaskId})`);
   };
-  const handleAddMember = () => { if (!newMemberName) return alert("정보 입력"); const newId = `u-${Date.now()}`; setUsers([...users, { id: newId, name: newMemberName, role: newMemberRole, team: targetDeptForAdd, status: 'active', joinDate: '2025-01-25', email: 'new@nextstep.com' }]); setShowAddMemberModal(false); alert("추가됨"); };
+  
+  // Updated Add Member Handler
+  const handleAddMember = () => { 
+      if (!newMemberName || !newMemberRole || !targetDeptForAdd) return alert("모든 정보를 입력해주세요."); 
+      const newId = `u-${Date.now()}`; 
+      setUsers([...users, { id: newId, name: newMemberName, role: newMemberRole, team: targetDeptForAdd, status: 'active', joinDate: '2025-01-25', email: 'new@nextstep.com' }]); 
+      setShowAddMemberModal(false); 
+      setNewMemberName("");
+      setNewMemberRole("");
+      alert(`${newMemberName}님이 등록되었습니다.`); 
+  };
+  
   const handleResignMember = (id) => { if(confirm("퇴사 처리?")) setUsers(users.map(u => u.id === id ? { ...u, status: 'resigned' } : u)); };
   const handleTransfer = (targetUserId) => {
     if (!selectedTask) return;
@@ -335,7 +347,38 @@ export default function NextStepApp() {
         </div>
       )}
       
-      {showAddMemberModal && (<div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"><div className="bg-white rounded-2xl w-full max-w-sm shadow-2xl p-6 animate-fade-in"><h3 className="text-lg font-bold mb-4">신규 입사자 등록</h3><div className="bg-gray-50 p-2 mb-4 text-center text-sm font-bold text-indigo-600">{targetDeptForAdd}</div><input className="w-full border p-2 rounded mb-2" placeholder="이름" value={newMemberName} onChange={e=>setNewMemberName(e.target.value)} /><input className="w-full border p-2 rounded mb-4" placeholder="직책" value={newMemberRole} onChange={e=>setNewMemberRole(e.target.value)} /><div className="flex justify-end gap-2"><button onClick={() => setShowAddMemberModal(false)} className="px-4 py-2 text-gray-500">취소</button><button onClick={handleAddMember} className="px-4 py-2 bg-indigo-600 text-white rounded">등록</button></div></div></div>)}
+      {showAddMemberModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl w-full max-w-sm shadow-2xl p-6 animate-fade-in">
+            <h3 className="text-lg font-bold mb-4">신규 입사자 등록</h3>
+            <div className="mb-3">
+                <label className="block text-sm font-medium text-gray-700 mb-1">소속 조직(팀)</label>
+                <select 
+                  value={targetDeptForAdd} 
+                  onChange={(e) => setTargetDeptForAdd(e.target.value)}
+                  className="w-full border rounded-lg px-3 py-2 bg-white text-gray-900"
+                >
+                  <option value="">부서를 선택하세요</option>
+                  {teams.map(team => (
+                    <option key={team} value={team}>{team}</option>
+                  ))}
+                </select>
+            </div>
+            
+            <div className="mb-3">
+                <label className="block text-sm font-medium text-gray-700 mb-1">직책</label>
+                <input className="w-full border rounded-lg px-3 py-2" placeholder="예: 과장, 선임연구원" value={newMemberRole} onChange={e=>setNewMemberRole(e.target.value)} />
+            </div>
+
+            <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-1">이름</label>
+                <input className="w-full border rounded-lg px-3 py-2" placeholder="예: 홍길동" value={newMemberName} onChange={e=>setNewMemberName(e.target.value)} />
+            </div>
+            
+            <div className="flex justify-end gap-2"><button onClick={() => setShowAddMemberModal(false)} className="px-4 py-2 text-gray-500">취소</button><button onClick={handleAddMember} className="px-4 py-2 bg-indigo-600 text-white rounded">등록</button></div>
+          </div>
+        </div>
+      )}
 
       {showUpgradeModal && (<div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 backdrop-blur-sm"><div className="bg-white rounded-2xl w-full max-w-md shadow-2xl p-8 text-center animate-fade-in relative"><button onClick={() => setShowUpgradeModal(false)} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"><X size={24}/></button><div className="bg-indigo-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"><Zap size={32} className="text-indigo-600 fill-current"/></div><h2 className="text-2xl font-bold text-gray-900 mb-2">Pro 플랜으로 업그레이드</h2><p className="text-gray-500 mb-6">KPI 관리, 성과 평가, AI 분석 등 회사의 성장을 위한 모든 기능을 잠금 해제하세요.</p><button onClick={() => { setCurrentPlan('PRO'); setShowUpgradeModal(false); alert("Pro 플랜이 활성화되었습니다! (Demo)"); }} className="w-full bg-indigo-600 text-white py-3 rounded-xl font-bold text-lg hover:bg-indigo-700 transition shadow-lg">월 50,000원에 시작하기</button></div></div>)}
 
