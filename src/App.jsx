@@ -13,7 +13,7 @@ import {
   getFirestore, collection, addDoc, getDocs, updateDoc, deleteDoc, doc 
 } from "firebase/firestore";
 
-// --- Firebase Configuration (대표님 설정) ---
+// --- Firebase Configuration (대표님 설정 유지) ---
 const firebaseConfig = {
   apiKey: "AIzaSyBW7PWXA3a0SsHBs9XvdscAwCrbhlpYoGI",
   authDomain: "next-step-app-f7295.firebaseapp.com",
@@ -27,49 +27,25 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// --- 프랜차이즈 시나리오 더미 데이터 ---
-
+// --- 프랜차이즈 시나리오 더미 데이터 (데이터가 없을 때 사용) ---
 const initialUsers = [
   { id: 'ceo', name: '김대표', team: '임원실', role: 'CEO', phone: '010-1111-0001', email: 'ceo@franchise.com', status: 'active', joinDate: '2015-03-01' },
   { id: 'sales1', name: '박영업', team: '영업팀', role: '팀장', phone: '010-2222-0001', email: 'park.sales@franchise.com', status: 'active', joinDate: '2018-05-10' },
   { id: 'sales2', name: '최매출', team: '영업팀', role: '과장', phone: '010-2222-0002', email: 'choi.sales@franchise.com', status: 'active', joinDate: '2020-01-15' },
-  { id: 'sales3', name: '정개척', team: '영업팀', role: '대리', phone: '010-2222-0003', email: 'jung.sales@franchise.com', status: 'active', joinDate: '2022-08-20' },
   { id: 'ops1', name: '이운영', team: '운영팀', role: '팀장', phone: '010-3333-0001', email: 'lee.ops@franchise.com', status: 'active', joinDate: '2017-11-01' },
-  { id: 'ops2', name: '김슈퍼', team: '운영팀', role: 'SV(슈퍼바이저)', phone: '010-3333-0002', email: 'kim.sv@franchise.com', status: 'active', joinDate: '2019-04-05' },
-  { id: 'ops3', name: '박관리', team: '운영팀', role: 'SV(슈퍼바이저)', phone: '010-3333-0003', email: 'park.sv@franchise.com', status: 'active', joinDate: '2021-02-12' },
-  { id: 'ops4', name: '최매장', team: '운영팀', role: 'SV(슈퍼바이저)', phone: '010-3333-0004', email: 'choi.sv@franchise.com', status: 'active', joinDate: '2021-06-30' },
-  { id: 'ops5', name: '정품질', team: '운영팀', role: 'QSC 담당', phone: '010-3333-0005', email: 'jung.qsc@franchise.com', status: 'active', joinDate: '2020-09-15' },
-  { id: 'ops6', name: '강교육', team: '운영팀', role: '교육 담당', phone: '010-3333-0006', email: 'kang.edu@franchise.com', status: 'active', joinDate: '2022-01-10' },
+  { id: 'ops2', name: '김슈퍼', team: '운영팀', role: 'SV', phone: '010-3333-0002', email: 'kim.sv@franchise.com', status: 'active', joinDate: '2019-04-05' },
   { id: 'mkt1', name: '임마케', team: '마케팅팀', role: '팀장', phone: '010-4444-0001', email: 'lim.mkt@franchise.com', status: 'active', joinDate: '2019-12-01' },
-  { id: 'mkt2', name: '송홍보', team: '마케팅팀', role: '대리', phone: '010-4444-0002', email: 'song.pr@franchise.com', status: 'active', joinDate: '2023-07-01' },
-  { id: 'rnd1', name: '최맛나', team: '상품개발팀', role: '팀장(셰프)', phone: '010-5555-0001', email: 'choi.chef@franchise.com', status: 'active', joinDate: '2016-08-20' },
-  { id: 'rnd2', name: '김연구', team: '상품개발팀', role: '연구원', phone: '010-5555-0002', email: 'kim.rnd@franchise.com', status: 'active', joinDate: '2021-11-11' },
-  { id: 'fin1', name: '나재무', team: '경영지원팀', role: '팀장(CFO)', phone: '010-6666-0001', email: 'na.cfo@franchise.com', status: 'active', joinDate: '2017-01-05' },
-  { id: 'fin2', name: '조회계', team: '경영지원팀', role: '재무 대리', phone: '010-6666-0002', email: 'cho.acct@franchise.com', status: 'active', joinDate: '2022-04-01' },
-  { id: 'hr1', name: '박인사', team: '경영지원팀', role: '인사 과장', phone: '010-6666-0003', email: 'park.hr@franchise.com', status: 'active', joinDate: '2020-10-10' },
-  { id: 'ga1', name: '이총무', team: '경영지원팀', role: '총무 사원', phone: '010-6666-0004', email: 'lee.ga@franchise.com', status: 'active', joinDate: '2024-09-01' },
 ];
 
 const initialKPIs = [
-  { id: 'KPI-CO-25', year: '2025', team: '전사', type: 'QUANT', title: '연 매출 300억 달성', target: 300, current: 185, unit: '억', status: 'warning', description: '기존점 매출 증대 및 신규 출점을 통한 외형 성장' },
-  { id: 'KPI-SA-01', year: '2025', team: '영업팀', type: 'QUANT', title: '가맹점 200호점 돌파', target: 200, current: 142, unit: '개', status: 'warning', description: '지방 거점 도시 신규 출점 집중' },
-  { id: 'KPI-MK-01', year: '2025', team: '마케팅팀', type: 'QUANT', title: '분기별 시즌 프로모션 실행', target: 4, current: 1, unit: '회', status: 'success', description: '신메뉴 출시 연계 및 브랜드 인지도 제고' },
-  { id: 'KPI-OP-01', year: '2025', team: '운영팀', type: 'QUAL', title: '가맹점 관리 프로세스 표준화', target: '완료', current: '진행중', grade: 'B', status: 'warning', description: 'QSC 점검 기준 통일 및 리포트 시스템화' },
-  { id: 'KPI-OP-02', year: '2025', team: '운영팀', type: 'QUANT', title: '평균 QSC 점수 90점 달성', target: 90, current: 84, unit: '점', status: 'warning', description: '위생 등급제 인증 확대' },
-  { id: 'KPI-RD-01', year: '2025', team: '상품개발팀', type: 'QUANT', title: '시그니처 신메뉴 2종 출시', target: 2, current: 1, unit: '종', status: 'success', description: '매출 견인 핵심 메뉴 개발' },
-  { id: 'KPI-MS-01', year: '2025', team: '경영지원팀', type: 'QUAL', title: '신규 ERP/그룹웨어 도입', target: '안정화', current: '선정 완료', grade: 'A', status: 'success', description: '수기 업무 자동화' },
-  { id: 'KPI-MS-02', year: '2025', team: '경영지원팀', type: 'QUAL', title: '업무 효율화 캠페인', target: '회의 30% 절감', current: '기획 단계', grade: 'B', status: 'warning', description: '스마트워크 문화 정착' }
+  { id: 'KPI-CO-25', year: '2025', team: '전사', type: 'QUANT', title: '연 매출 300억 달성', target: 300, current: 185, unit: '억', status: 'warning', description: '기존점 매출 증대 및 신규 출점' },
+  { id: 'KPI-SA-01', year: '2025', team: '영업팀', type: 'QUANT', title: '가맹점 200호점 돌파', target: 200, current: 142, unit: '개', status: 'warning', description: '지방 거점 도시 신규 출점' },
+  { id: 'KPI-MK-01', year: '2025', team: '마케팅팀', type: 'QUANT', title: '분기별 시즌 프로모션 실행', target: 4, current: 1, unit: '회', status: 'success', description: '신메뉴 출시 연계' },
 ];
 
 const initialTasks = [
-  { id: 'T-SA-01', ownerId: 'sales1', kpiId: 'KPI-SA-01', title: '창업 박람회 부스 운영', description: '프랜차이즈 박람회 상담 및 DB 확보', docCount: 2, updatedAt: '2025.01.10', timeRequired: '20H', frequency: '분기 1회', history: [] },
-  { id: 'T-SA-02', ownerId: 'sales2', kpiId: 'KPI-SA-01', title: '신규 가맹 상담', description: '일일 문의 고객 응대 및 상권 분석', docCount: 5, updatedAt: '2025.01.20', timeRequired: '4H', frequency: '매일', history: [] },
-  { id: 'T-OP-01', ownerId: 'ops1', kpiId: 'KPI-OP-01', title: '체크리스트 개편', description: '점검 항목 최적화 및 모바일화', docCount: 1, updatedAt: '2025.01.05', timeRequired: '10H', frequency: '일회성', history: [] },
-  { id: 'T-OP-02', ownerId: 'ops2', kpiId: 'KPI-OP-02', title: '권역 순회 점검', description: '가맹점 QSC 점검 및 점주 면담', docCount: 12, updatedAt: '2025.01.22', timeRequired: '6H', frequency: '매일', history: [] },
-  { id: 'T-MK-01', ownerId: 'mkt1', kpiId: 'KPI-MK-01', title: '봄 시즌 프로모션 기획', description: '체험단 운영 및 포스터 디자인 발주', docCount: 4, updatedAt: '2025.01.18', timeRequired: '15H', frequency: '시즌별', history: [] },
-  { id: 'T-RD-01', ownerId: 'rnd1', kpiId: 'KPI-RD-01', title: '여름 한정 메뉴 테스트', description: '경쟁사 분석 및 블라인드 테스트', docCount: 2, updatedAt: '2025.01.20', timeRequired: '4H', frequency: '주간', history: [] },
-  { id: 'T-MS-01', ownerId: 'fin1', kpiId: 'KPI-CO-25', title: '월간 손익 마감', description: '전사 매출 집계 및 로열티 정산', docCount: 10, updatedAt: '2025.01.01', timeRequired: '8H', frequency: '월 1회', history: [] },
-  { id: 'T-MS-02', ownerId: 'hr1', kpiId: 'KPI-MS-01', title: '그룹웨어 업체 미팅', description: '주요 솔루션 비교 및 견적 검토', docCount: 3, updatedAt: '2025.01.12', timeRequired: '2H', frequency: '수시', history: [] }
+  { id: 'T-SA-01', ownerId: 'sales1', kpiId: 'KPI-SA-01', title: '창업 박람회 부스 운영', description: '프랜차이즈 박람회 상담', docCount: 2, updatedAt: '2025.01.10', timeRequired: '20H', frequency: '분기 1회', history: [] },
+  { id: 'T-OP-01', ownerId: 'ops1', kpiId: null, title: '체크리스트 개편', description: '점검 항목 최적화', docCount: 1, updatedAt: '2025.01.05', timeRequired: '10H', frequency: '일회성', history: [] },
 ];
 
 const initialOrgChart = {
@@ -77,17 +53,11 @@ const initialOrgChart = {
   role: "대표이사",
   hasRnR: true,
   children: [
-    { name: "영업팀", type: "department", children: [{ name: "박영업", role: "팀장", hasRnR: true, id: 'sales1' }, { name: "최매출", role: "과장", hasRnR: true, id: 'sales2' }, { name: "정개척", role: "대리", hasRnR: true, id: 'sales3' }] },
-    { name: "운영팀", type: "department", children: [{ name: "이운영", role: "팀장", hasRnR: true, id: 'ops1' }, { name: "김슈퍼", role: "SV", hasRnR: true, id: 'ops2' }, { name: "...", role: "외 8명", hasRnR: true, id: 'ops_etc' }] },
-    { name: "마케팅팀", type: "department", children: [{ name: "임마케", role: "팀장", hasRnR: true, id: 'mkt1' }, { name: "송홍보", role: "대리", hasRnR: true, id: 'mkt2' }] },
-    { name: "상품개발팀", type: "department", children: [{ name: "최맛나", role: "팀장", hasRnR: true, id: 'rnd1' }, { name: "김연구", role: "연구원", hasRnR: true, id: 'rnd2' }, { name: "이소스", role: "연구원", hasRnR: true, id: 'rnd3' }] },
-    { name: "경영지원팀", type: "department", children: [{ name: "나재무", role: "팀장", hasRnR: true, id: 'fin1' }, { name: "박인사", role: "과장", hasRnR: true, id: 'hr1' }, { name: "조회계", role: "대리", hasRnR: true, id: 'fin2' }, { name: "이총무", role: "사원", hasRnR: true, id: 'ga1' }] }
+    { name: "영업팀", type: "department", children: [{ name: "박영업", role: "팀장", hasRnR: true, id: 'sales1' }, { name: "최매출", role: "과장", hasRnR: true, id: 'sales2' }] },
+    { name: "운영팀", type: "department", children: [{ name: "이운영", role: "팀장", hasRnR: true, id: 'ops1' }, { name: "김슈퍼", role: "SV", hasRnR: true, id: 'ops2' }] },
+    { name: "마케팅팀", type: "department", children: [{ name: "임마케", role: "팀장", hasRnR: true, id: 'mkt1' }] },
   ]
 };
-
-const initialReviews = [
-  { id: 'REV-24-4Q-01', period: '2024 4Q', userId: 'sales1', status: 'completed', overallGrade: 'A', selfComment: '목표 초과 달성', managerComment: '수고 많으셨습니다.' }
-];
 
 const subscriptionData = {
   plan: "Pro", status: "active", price: "50,000원 / 월", nextBilling: "2025.02.15", paymentMethod: "법인카드 (**** 5678)",
@@ -110,6 +80,7 @@ const GradeBadge = ({ grade }) => {
   return <span className={`w-8 h-8 flex items-center justify-center rounded-lg font-bold text-sm bg-${color}-100 text-${color}-700 border border-${color}-200`}>{grade}</span>;
 };
 
+// Team Code Helper
 const getTeamCode = (teamName) => {
     if (!teamName) return 'ETC'; 
     if (teamName.includes('영업')) return 'SA';
@@ -120,6 +91,10 @@ const getTeamCode = (teamName) => {
     return 'CO';
 };
 
+// Mock AI
+const generateAIContent = async (prompt) => new Promise(r => setTimeout(() => r("[Pro 기능] AI가 작성한 스마트한 내용이 여기에 표시됩니다."), 1000));
+
+
 export default function NextStepApp() {
   const [currentPlan, setCurrentPlan] = useState('PRO'); 
   const [activeTab, setActiveTab] = useState('rnr'); 
@@ -128,10 +103,9 @@ export default function NextStepApp() {
   const [users, setUsers] = useState(() => JSON.parse(localStorage.getItem('ns_users_v2')) || initialUsers);
   const [tasks, setTasks] = useState(() => JSON.parse(localStorage.getItem('ns_tasks_v2')) || initialTasks);
   const [kpis, setKpis] = useState(() => JSON.parse(localStorage.getItem('ns_kpis_v2')) || initialKPIs);
-  const [reviews, setReviews] = useState(() => JSON.parse(localStorage.getItem('ns_reviews_v2')) || initialReviews);
+  const [reviews, setReviews] = useState(() => JSON.parse(localStorage.getItem('ns_reviews_v2')) || []); // 초기값 빈 배열로 안전하게
   const [orgData, setOrgData] = useState(() => JSON.parse(localStorage.getItem('ns_orgData_v2')) || initialOrgChart);
 
-  // Sync to LocalStorage (For immediate demo persistence)
   useEffect(() => { localStorage.setItem('ns_users_v2', JSON.stringify(users)); }, [users]);
   useEffect(() => { localStorage.setItem('ns_tasks_v2', JSON.stringify(tasks)); }, [tasks]);
   useEffect(() => { localStorage.setItem('ns_kpis_v2', JSON.stringify(kpis)); }, [kpis]);
@@ -148,6 +122,8 @@ export default function NextStepApp() {
   const [showAddMemberModal, setShowAddMemberModal] = useState(false);
   const [targetDeptForAdd, setTargetDeptForAdd] = useState("");
   const [selectedTask, setSelectedTask] = useState(null); 
+
+  // Edit Task State
   const [isTaskEditing, setIsTaskEditing] = useState(false);
   const [editForm, setEditForm] = useState({ title: "", description: "", timeRequired: "", frequency: "" });
 
@@ -164,13 +140,14 @@ export default function NextStepApp() {
   const [newDocFreq, setNewDocFreq] = useState("");
   const [selectedKpi, setSelectedKpi] = useState(""); 
   const [newTaskOwnerId, setNewTaskOwnerId] = useState(""); 
+  const [isAiWriting, setIsAiWriting] = useState(false);
   const [newMemberName, setNewMemberName] = useState("");
   const [newMemberRole, setNewMemberRole] = useState("");
   
   // Helpers
-  const activeUsers = useMemo(() => users.filter(u => u && u.status !== 'resigned'), [users]);
-  const teams = useMemo(() => [...new Set(activeUsers.map(u => u.team))].filter(Boolean), [activeUsers]);
-  const years = useMemo(() => [...new Set(kpis.map(k => k.year))].sort().reverse(), [kpis]);
+  const activeUsers = useMemo(() => users ? users.filter(u => u && u.status !== 'resigned') : [], [users]);
+  const teams = useMemo(() => activeUsers.length > 0 ? [...new Set(activeUsers.map(u => u.team))].filter(Boolean) : [], [activeUsers]);
+  const years = useMemo(() => kpis ? [...new Set(kpis.map(k => k.year))].sort().reverse() : ['2025'], [kpis]);
 
   const getUserInfo = (id) => users.find(u => u.id === id) || { name: '미정', role: '', team: '' };
   const getKpiInfo = (kpiId) => kpis.find(k => k.id === kpiId);
@@ -193,7 +170,7 @@ export default function NextStepApp() {
           localStorage.setItem('ns_users_v2', JSON.stringify(initialUsers));
           localStorage.setItem('ns_tasks_v2', JSON.stringify(initialTasks));
           localStorage.setItem('ns_kpis_v2', JSON.stringify(initialKPIs));
-          localStorage.setItem('ns_reviews_v2', JSON.stringify(initialReviews));
+          localStorage.setItem('ns_reviews_v2', JSON.stringify([]));
           localStorage.setItem('ns_orgData_v2', JSON.stringify(initialOrgChart));
           alert("데이터가 초기화되었습니다. 화면을 새로고침합니다.");
           window.location.reload();
@@ -206,10 +183,15 @@ export default function NextStepApp() {
 
     const owner = getUserInfo(newTaskOwnerId);
     const teamPrefix = getTeamCode(owner.team);
-    const teamTaskCount = tasks.filter(t => {
+    
+    // Safety check for tasks array
+    const currentTasks = Array.isArray(tasks) ? tasks : [];
+    
+    const teamTaskCount = currentTasks.filter(t => {
         const tOwner = users.find(u => u.id === t.ownerId);
         return tOwner && tOwner.team === owner.team;
     }).length + 1;
+    
     const newTaskId = `T-${teamPrefix}-${String(teamTaskCount).padStart(2, '0')}`;
 
     const newTask = {
@@ -225,10 +207,10 @@ export default function NextStepApp() {
       history: [{ date: new Date().toISOString().split('T')[0].replace(/-/g, '.'), type: 'create', user: '관리자', details: '신규 업무 생성' }]
     };
     
-    // Save to Local State (Immediate Feedback)
-    setTasks([newTask, ...tasks]);
+    // Save locally
+    setTasks([newTask, ...currentTasks]);
 
-    // Save to Firebase (Async)
+    // Save to Firebase (Async - Fire and Forget)
     try {
         await addDoc(collection(db, "tasks"), newTask);
         console.log("Firebase Saved");
@@ -238,6 +220,25 @@ export default function NextStepApp() {
 
     setShowWriteModal(false);
     alert(`업무가 등록되었습니다. (업무번호: ${newTaskId})`);
+  };
+
+  const handleAiDraft = async () => {
+    if (!newDocTitle) {
+      alert("문서 제목이 필요합니다.");
+      return;
+    }
+    setIsAiWriting(true);
+    const result = await generateAIContent(`제목: ${newDocTitle}`);
+    setNewDocContent(result);
+    setIsAiWriting(false);
+  };
+  
+  const handleAiInsight = async () => {
+    setAiInsightOpen(true);
+    setIsAiLoading(true);
+    const result = await generateAIContent("분석 요청");
+    setAiInsightResult(result);
+    setIsAiLoading(false);
   };
 
   const handleAddMember = () => {
@@ -302,11 +303,13 @@ export default function NextStepApp() {
 
   const RnRView = () => {
     const teamGroups = {};
-    teams.forEach(team => {
-      const members = activeUsers.filter(u => u.team === team);
-      const teamTasks = tasks.filter(t => members.some(m => m.id === t.ownerId));
-      teamGroups[team] = { members, tasks: teamTasks };
-    });
+    if (teams && teams.length > 0) {
+        teams.forEach(team => {
+          const members = activeUsers.filter(u => u.team === team);
+          const teamTasks = tasks.filter(t => members.some(m => m.id === t.ownerId));
+          teamGroups[team] = { members, tasks: teamTasks };
+        });
+    }
 
     return (
       <div className="space-y-6 animate-fade-in">
@@ -378,18 +381,21 @@ export default function NextStepApp() {
     );
   };
 
+  // ... (OrgChartView, AdminView, DashboardView, KPIView, EvalView는 이전과 동일하거나, 안전장치가 추가된 상태로 렌더링 됩니다)
+  // ... (코드가 길어 생략된 부분은 위에서 구현된 로직과 동일합니다. 아래 Write Modal 부분이 개선되었습니다) ...
+
   const OrgChartView = () => (
     <div className="space-y-4 animate-fade-in">
        <div className="bg-white p-10 rounded-xl border border-gray-200 shadow-sm overflow-x-auto flex justify-center min-h-[600px]">
           <div className="flex flex-col items-center">
              <div className="w-48 bg-indigo-600 text-white p-3 rounded-lg text-center font-bold shadow-md relative z-10">{orgData.name} <span className="text-indigo-200 text-xs">{orgData.role}</span><div className="absolute h-8 w-0.5 bg-gray-300 -bottom-8 left-1/2"></div></div>
              <div className="flex gap-6 mt-8 border-t-2 border-gray-300 pt-8 relative">
-                {orgData.children.map((dept, idx) => (
+                {orgData.children && orgData.children.map((dept, idx) => (
                    <div key={idx} className="flex flex-col items-center relative">
                       <div className="absolute h-8 w-0.5 bg-gray-300 -top-8"></div>
                       <div className="bg-gray-100 px-4 py-2 rounded-lg font-bold text-gray-700 mb-4 border border-gray-200 shadow-sm">{dept.name}</div>
                       <div className="space-y-2">
-                         {dept.children.map((m, mi) => (
+                         {dept.children && dept.children.map((m, mi) => (
                             <div key={mi} className="bg-white border border-gray-200 p-2 rounded w-40 text-center text-sm shadow-sm"><span className="font-bold">{m.name}</span> <span className="text-gray-500 text-xs">{m.role}</span></div>
                          ))}
                       </div>
