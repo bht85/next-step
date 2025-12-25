@@ -126,7 +126,7 @@ const ToastProvider = ({ children }) => {
 };
 const useToast = () => {
     const context = useContext(ToastContext);
-    if (!context) return () => {}; // Fallback if used outside provider (should not happen now)
+    if (!context) return () => {}; 
     return context;
 };
 
@@ -421,7 +421,7 @@ function NextStepAppContent() {
 }
 
 // Wrap main logic in a sub-component to use Toast Context
-function NextStepApp() {
+export default function NextStepApp() {
     return (
         <ToastProvider>
             <NextStepAppContent />
