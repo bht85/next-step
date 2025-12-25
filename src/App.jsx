@@ -6,42 +6,26 @@ import {
   History, Phone, Mail, Calendar, Sparkles, Loader2, Repeat, Timer, Target, 
   Link as LinkIcon, TrendingUp, Settings, CreditCard, Shield, Zap, BarChart3, 
   ChevronDown, Award, Star, MessageSquare, PieChart, LogOut, UserMinus, 
-  Briefcase as DeptIcon, RefreshCw, Lock 
+  Briefcase as DeptIcon, RefreshCw, Lock, AlignLeft, Hash, Trash2 
 } from 'lucide-react';
 
-// --- 프랜차이즈 시나리오 더미 데이터 (복구됨) ---
+// --- 프랜차이즈 시나리오 더미 데이터 ---
 
 const initialUsers = [
-  // 1. 대표이사
   { id: 'ceo', name: '김대표', team: '임원실', role: 'CEO', phone: '010-1111-0001', email: 'ceo@franchise.com', status: 'active', joinDate: '2015-03-01' },
-  
-  // 2. 영업팀 (3명)
   { id: 'sales1', name: '박영업', team: '영업팀', role: '팀장', phone: '010-2222-0001', email: 'park.sales@franchise.com', status: 'active', joinDate: '2018-05-10' },
   { id: 'sales2', name: '최매출', team: '영업팀', role: '과장', phone: '010-2222-0002', email: 'choi.sales@franchise.com', status: 'active', joinDate: '2020-01-15' },
   { id: 'sales3', name: '정개척', team: '영업팀', role: '대리', phone: '010-2222-0003', email: 'jung.sales@franchise.com', status: 'active', joinDate: '2022-08-20' },
-
-  // 3. 운영팀 (10명)
   { id: 'ops1', name: '이운영', team: '운영팀', role: '팀장', phone: '010-3333-0001', email: 'lee.ops@franchise.com', status: 'active', joinDate: '2017-11-01' },
   { id: 'ops2', name: '김슈퍼', team: '운영팀', role: 'SV(슈퍼바이저)', phone: '010-3333-0002', email: 'kim.sv@franchise.com', status: 'active', joinDate: '2019-04-05' },
   { id: 'ops3', name: '박관리', team: '운영팀', role: 'SV(슈퍼바이저)', phone: '010-3333-0003', email: 'park.sv@franchise.com', status: 'active', joinDate: '2021-02-12' },
   { id: 'ops4', name: '최매장', team: '운영팀', role: 'SV(슈퍼바이저)', phone: '010-3333-0004', email: 'choi.sv@franchise.com', status: 'active', joinDate: '2021-06-30' },
   { id: 'ops5', name: '정품질', team: '운영팀', role: 'QSC 담당', phone: '010-3333-0005', email: 'jung.qsc@franchise.com', status: 'active', joinDate: '2020-09-15' },
   { id: 'ops6', name: '강교육', team: '운영팀', role: '교육 담당', phone: '010-3333-0006', email: 'kang.edu@franchise.com', status: 'active', joinDate: '2022-01-10' },
-  { id: 'ops7', name: '조순회', team: '운영팀', role: 'SV(슈퍼바이저)', phone: '010-3333-0007', email: 'cho.sv@franchise.com', status: 'active', joinDate: '2023-03-01' },
-  { id: 'ops8', name: '윤해결', team: '운영팀', role: 'SV(슈퍼바이저)', phone: '010-3333-0008', email: 'yoon.sv@franchise.com', status: 'active', joinDate: '2023-05-20' },
-  { id: 'ops9', name: '장매뉴', team: '운영팀', role: '매뉴얼 담당', phone: '010-3333-0009', email: 'jang.manual@franchise.com', status: 'active', joinDate: '2024-01-02' },
-  { id: 'ops10', name: '한신입', team: '운영팀', role: '사원', phone: '010-3333-0010', email: 'han.new@franchise.com', status: 'active', joinDate: '2025-01-01' },
-
-  // 4. 마케팅팀 (2명)
   { id: 'mkt1', name: '임마케', team: '마케팅팀', role: '팀장', phone: '010-4444-0001', email: 'lim.mkt@franchise.com', status: 'active', joinDate: '2019-12-01' },
   { id: 'mkt2', name: '송홍보', team: '마케팅팀', role: '대리', phone: '010-4444-0002', email: 'song.pr@franchise.com', status: 'active', joinDate: '2023-07-01' },
-
-  // 5. 상품개발팀 (3명)
   { id: 'rnd1', name: '최맛나', team: '상품개발팀', role: '팀장(셰프)', phone: '010-5555-0001', email: 'choi.chef@franchise.com', status: 'active', joinDate: '2016-08-20' },
   { id: 'rnd2', name: '김연구', team: '상품개발팀', role: '연구원', phone: '010-5555-0002', email: 'kim.rnd@franchise.com', status: 'active', joinDate: '2021-11-11' },
-  { id: 'rnd3', name: '이소스', team: '상품개발팀', role: '연구원', phone: '010-5555-0003', email: 'lee.sauce@franchise.com', status: 'active', joinDate: '2024-02-15' },
-
-  // 6. 경영지원팀 (4명)
   { id: 'fin1', name: '나재무', team: '경영지원팀', role: '팀장(CFO)', phone: '010-6666-0001', email: 'na.cfo@franchise.com', status: 'active', joinDate: '2017-01-05' },
   { id: 'fin2', name: '조회계', team: '경영지원팀', role: '재무 대리', phone: '010-6666-0002', email: 'cho.acct@franchise.com', status: 'active', joinDate: '2022-04-01' },
   { id: 'hr1', name: '박인사', team: '경영지원팀', role: '인사 과장', phone: '010-6666-0003', email: 'park.hr@franchise.com', status: 'active', joinDate: '2020-10-10' },
@@ -49,34 +33,23 @@ const initialUsers = [
 ];
 
 const initialKPIs = [
-  // 전사
   { id: 'KPI-CO-25', year: '2025', team: '전사', type: 'QUANT', title: '연 매출 300억 달성', target: 300, current: 185, unit: '억', status: 'warning', description: '기존점 매출 증대 및 신규 출점을 통한 외형 성장' },
-  // 영업
   { id: 'KPI-SA-01', year: '2025', team: '영업팀', type: 'QUANT', title: '가맹점 200호점 돌파', target: 200, current: 142, unit: '개', status: 'warning', description: '지방 거점 도시 신규 출점 집중' },
-  // 마케팅
   { id: 'KPI-MK-01', year: '2025', team: '마케팅팀', type: 'QUANT', title: '분기별 시즌 프로모션 실행', target: 4, current: 1, unit: '회', status: 'success', description: '신메뉴 출시 연계 및 브랜드 인지도 제고' },
-  // 운영
   { id: 'KPI-OP-01', year: '2025', team: '운영팀', type: 'QUAL', title: '가맹점 관리 프로세스 표준화', target: '완료', current: '진행중', grade: 'B', status: 'warning', description: 'QSC 점검 기준 통일 및 리포트 시스템화' },
   { id: 'KPI-OP-02', year: '2025', team: '운영팀', type: 'QUANT', title: '평균 QSC 점수 90점 달성', target: 90, current: 84, unit: '점', status: 'warning', description: '위생 등급제 인증 확대' },
-  // 상품개발
   { id: 'KPI-RD-01', year: '2025', team: '상품개발팀', type: 'QUANT', title: '시그니처 신메뉴 2종 출시', target: 2, current: 1, unit: '종', status: 'success', description: '매출 견인 핵심 메뉴 개발' },
-  // 경영지원
   { id: 'KPI-MS-01', year: '2025', team: '경영지원팀', type: 'QUAL', title: '신규 ERP/그룹웨어 도입', target: '안정화', current: '선정 완료', grade: 'A', status: 'success', description: '수기 업무 자동화' },
   { id: 'KPI-MS-02', year: '2025', team: '경영지원팀', type: 'QUAL', title: '업무 효율화 캠페인', target: '회의 30% 절감', current: '기획 단계', grade: 'B', status: 'warning', description: '스마트워크 문화 정착' }
 ];
 
 const initialTasks = [
-  // 영업
   { id: 'T-SA-01', ownerId: 'sales1', kpiId: 'KPI-SA-01', title: '창업 박람회 부스 운영', description: '프랜차이즈 박람회 상담 및 DB 확보', docCount: 2, updatedAt: '2025.01.10', timeRequired: '20H', frequency: '분기 1회', history: [] },
   { id: 'T-SA-02', ownerId: 'sales2', kpiId: 'KPI-SA-01', title: '신규 가맹 상담', description: '일일 문의 고객 응대 및 상권 분석', docCount: 5, updatedAt: '2025.01.20', timeRequired: '4H', frequency: '매일', history: [] },
-  // 운영
   { id: 'T-OP-01', ownerId: 'ops1', kpiId: 'KPI-OP-01', title: '체크리스트 개편', description: '점검 항목 최적화 및 모바일화', docCount: 1, updatedAt: '2025.01.05', timeRequired: '10H', frequency: '일회성', history: [] },
   { id: 'T-OP-02', ownerId: 'ops2', kpiId: 'KPI-OP-02', title: '권역 순회 점검', description: '가맹점 QSC 점검 및 점주 면담', docCount: 12, updatedAt: '2025.01.22', timeRequired: '6H', frequency: '매일', history: [] },
-  // 마케팅
   { id: 'T-MK-01', ownerId: 'mkt1', kpiId: 'KPI-MK-01', title: '봄 시즌 프로모션 기획', description: '체험단 운영 및 포스터 디자인 발주', docCount: 4, updatedAt: '2025.01.18', timeRequired: '15H', frequency: '시즌별', history: [] },
-  // 개발
   { id: 'T-RD-01', ownerId: 'rnd1', kpiId: 'KPI-RD-01', title: '여름 한정 메뉴 테스트', description: '경쟁사 분석 및 블라인드 테스트', docCount: 2, updatedAt: '2025.01.20', timeRequired: '4H', frequency: '주간', history: [] },
-  // 지원
   { id: 'T-MS-01', ownerId: 'fin1', kpiId: 'KPI-CO-25', title: '월간 손익 마감', description: '전사 매출 집계 및 로열티 정산', docCount: 10, updatedAt: '2025.01.01', timeRequired: '8H', frequency: '월 1회', history: [] },
   { id: 'T-MS-02', ownerId: 'hr1', kpiId: 'KPI-MS-01', title: '그룹웨어 업체 미팅', description: '주요 솔루션 비교 및 견적 검토', docCount: 3, updatedAt: '2025.01.12', timeRequired: '2H', frequency: '수시', history: [] }
 ];
@@ -86,51 +59,11 @@ const initialOrgChart = {
   role: "대표이사",
   hasRnR: true,
   children: [
-    {
-      name: "영업팀",
-      type: "department",
-      children: [
-        { name: "박영업", role: "팀장", hasRnR: true, id: 'sales1' },
-        { name: "최매출", role: "과장", hasRnR: true, id: 'sales2' },
-        { name: "정개척", role: "대리", hasRnR: true, id: 'sales3' }
-      ]
-    },
-    {
-      name: "운영팀",
-      type: "department",
-      children: [
-        { name: "이운영", role: "팀장", hasRnR: true, id: 'ops1' },
-        { name: "김슈퍼", role: "SV", hasRnR: true, id: 'ops2' },
-        { name: "...", role: "외 8명", hasRnR: true, id: 'ops_etc' }
-      ]
-    },
-    {
-      name: "마케팅팀",
-      type: "department",
-      children: [
-        { name: "임마케", role: "팀장", hasRnR: true, id: 'mkt1' },
-        { name: "송홍보", role: "대리", hasRnR: true, id: 'mkt2' }
-      ]
-    },
-    {
-      name: "상품개발팀",
-      type: "department",
-      children: [
-        { name: "최맛나", role: "팀장", hasRnR: true, id: 'rnd1' },
-        { name: "김연구", role: "연구원", hasRnR: true, id: 'rnd2' },
-        { name: "이소스", role: "연구원", hasRnR: true, id: 'rnd3' }
-      ]
-    },
-    {
-      name: "경영지원팀",
-      type: "department",
-      children: [
-        { name: "나재무", role: "팀장", hasRnR: true, id: 'fin1' },
-        { name: "박인사", role: "과장", hasRnR: true, id: 'hr1' },
-        { name: "조회계", role: "대리", hasRnR: true, id: 'fin2' },
-        { name: "이총무", role: "사원", hasRnR: true, id: 'ga1' }
-      ]
-    }
+    { name: "영업팀", type: "department", children: [{ name: "박영업", role: "팀장", hasRnR: true, id: 'sales1' }, { name: "최매출", role: "과장", hasRnR: true, id: 'sales2' }, { name: "정개척", role: "대리", hasRnR: true, id: 'sales3' }] },
+    { name: "운영팀", type: "department", children: [{ name: "이운영", role: "팀장", hasRnR: true, id: 'ops1' }, { name: "김슈퍼", role: "SV", hasRnR: true, id: 'ops2' }, { name: "...", role: "외 8명", hasRnR: true, id: 'ops_etc' }] },
+    { name: "마케팅팀", type: "department", children: [{ name: "임마케", role: "팀장", hasRnR: true, id: 'mkt1' }, { name: "송홍보", role: "대리", hasRnR: true, id: 'mkt2' }] },
+    { name: "상품개발팀", type: "department", children: [{ name: "최맛나", role: "팀장", hasRnR: true, id: 'rnd1' }, { name: "김연구", role: "연구원", hasRnR: true, id: 'rnd2' }, { name: "이소스", role: "연구원", hasRnR: true, id: 'rnd3' }] },
+    { name: "경영지원팀", type: "department", children: [{ name: "나재무", role: "팀장", hasRnR: true, id: 'fin1' }, { name: "박인사", role: "과장", hasRnR: true, id: 'hr1' }, { name: "조회계", role: "대리", hasRnR: true, id: 'fin2' }, { name: "이총무", role: "사원", hasRnR: true, id: 'ga1' }] }
   ]
 };
 
@@ -139,11 +72,7 @@ const initialReviews = [
 ];
 
 const subscriptionData = {
-  plan: "Pro", // 초기값을 Pro로 설정하여 더미 데이터가 바로 보이게 함 (데모용)
-  status: "active",
-  price: "50,000원 / 월",
-  nextBilling: "2025.02.15",
-  paymentMethod: "법인카드 (**** 5678)",
+  plan: "Pro", status: "active", price: "50,000원 / 월", nextBilling: "2025.02.15", paymentMethod: "법인카드 (**** 5678)",
   usage: { seats: { used: 23, total: 30 }, storage: { used: 120, total: 500, unit: "GB" }, aiCredits: { used: 4500, total: 10000 } },
   billingHistory: [ { date: "2025.01.15", amount: "50,000원", status: "결제완료" } ]
 };
@@ -163,13 +92,21 @@ const GradeBadge = ({ grade }) => {
   return <span className={`w-8 h-8 flex items-center justify-center rounded-lg font-bold text-sm bg-${color}-100 text-${color}-700 border border-${color}-200`}>{grade}</span>;
 };
 
-// Mock AI
 const generateAIContent = async (prompt) => new Promise(r => setTimeout(() => r("[Pro 기능] AI가 작성한 스마트한 내용이 여기에 표시됩니다."), 1000));
 
+// --- Team Code Helper (안전 장치 추가) ---
+const getTeamCode = (teamName) => {
+    if (!teamName) return 'ETC'; // 팀 이름이 없을 경우 기본값
+    if (teamName.includes('영업')) return 'SA';
+    if (teamName.includes('운영')) return 'OP';
+    if (teamName.includes('마케팅')) return 'MK';
+    if (teamName.includes('개발') || teamName.includes('R&D')) return 'RD';
+    if (teamName.includes('지원') || teamName.includes('재무') || teamName.includes('인사')) return 'MS';
+    return 'CO';
+};
 
 export default function NextStepApp() {
-  // --- Global State ---
-  const [currentPlan, setCurrentPlan] = useState('PRO'); // 데모용 초기값 PRO
+  const [currentPlan, setCurrentPlan] = useState('PRO'); 
   const [activeTab, setActiveTab] = useState('rnr'); 
   
   // Data State
@@ -188,11 +125,17 @@ export default function NextStepApp() {
   // UI States
   const [showWriteModal, setShowWriteModal] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false); 
+  const [showDetailModal, setShowDetailModal] = useState(false); 
   const [rnrViewMode, setRnrViewMode] = useState('team'); 
   const [isOrgEditMode, setIsOrgEditMode] = useState(false);
   const [adminTab, setAdminTab] = useState('hr');
   const [showAddMemberModal, setShowAddMemberModal] = useState(false);
   const [targetDeptForAdd, setTargetDeptForAdd] = useState("");
+  const [selectedTask, setSelectedTask] = useState(null); 
+
+  // Edit Task State
+  const [isTaskEditing, setIsTaskEditing] = useState(false);
+  const [editForm, setEditForm] = useState({ title: "", description: "", timeRequired: "", frequency: "" });
 
   // Filters
   const [selectedKpiYear, setSelectedKpiYear] = useState('2025');
@@ -200,18 +143,26 @@ export default function NextStepApp() {
   const [selectedEvalUser, setSelectedEvalUser] = useState('sales1'); 
   const [evalViewType, setEvalViewType] = useState('team');
 
-  // Form States
+  // Form States (New Task)
   const [newDocTitle, setNewDocTitle] = useState("");
   const [newDocContent, setNewDocContent] = useState("");
+  const [newDocTime, setNewDocTime] = useState(""); 
+  const [newDocFreq, setNewDocFreq] = useState("");
+  const [selectedKpi, setSelectedKpi] = useState(""); 
+  const [newTaskOwnerId, setNewTaskOwnerId] = useState(""); 
+  const [isAiWriting, setIsAiWriting] = useState(false);
+
+  // Form States (Member)
   const [newMemberName, setNewMemberName] = useState("");
   const [newMemberRole, setNewMemberRole] = useState("");
   
-  // Helpers
+  // Helpers (안전 장치 추가: 빈 값 필터링)
   const activeUsers = useMemo(() => users.filter(u => u.status !== 'resigned'), [users]);
-  const teams = useMemo(() => [...new Set(activeUsers.map(u => u.team))], [activeUsers]);
+  const teams = useMemo(() => [...new Set(activeUsers.map(u => u.team))].filter(Boolean), [activeUsers]);
   const years = useMemo(() => [...new Set(kpis.map(k => k.year))].sort().reverse(), [kpis]);
 
-  const getUserInfo = (id) => users.find(u => u.id === id) || { name: '미정', role: '' };
+  const getUserInfo = (id) => users.find(u => u.id === id) || { name: '미정', role: '', team: '' };
+  const getKpiInfo = (kpiId) => kpis.find(k => k.id === kpiId);
   const calculateAchievement = (kpi) => {
     if (kpi.type === 'QUAL') return 0;
     const rate = kpi.unit === 'sec' ? (kpi.target >= kpi.current ? 100 : Math.round((kpi.target / kpi.current) * 100)) : Math.round((kpi.current / kpi.target) * 100);
@@ -225,15 +176,84 @@ export default function NextStepApp() {
 
   // --- Handlers ---
   const handleProFeatureClick = () => { if (currentPlan === 'BASIC') setShowUpgradeModal(true); };
-  const handleSaveTask = () => {
-    const newTask = { id: `T-${Date.now()}`, ownerId: 'sales1', kpiId: null, title: newDocTitle, description: newDocContent, docCount: 0, updatedAt: '2025.01.25', timeRequired: '1H', frequency: '수시', history: [] };
-    setTasks([newTask, ...tasks]); setShowWriteModal(false); alert("저장됨");
+  
+  // 데이터 초기화 핸들러 (비상용)
+  const handleResetData = () => {
+      if(window.confirm("모든 데이터를 초기화하고 프랜차이즈 예시 데이터로 복구하시겠습니까?")) {
+          setUsers(initialUsers);
+          setTasks(initialTasks);
+          setKpis(initialKPIs);
+          setReviews(initialReviews);
+          setOrgData(initialOrgChart);
+          alert("데이터가 초기화되었습니다.");
+      }
   };
+
+  const handleSaveTask = () => {
+    if (!newDocTitle) return alert('제목을 입력해주세요.');
+    if (!newTaskOwnerId) return alert('담당자를 선택해주세요.');
+
+    const owner = getUserInfo(newTaskOwnerId);
+    const teamPrefix = getTeamCode(owner.team);
+    // Count existing tasks for this team to generate ID number
+    const teamTaskCount = tasks.filter(t => {
+        const tOwner = users.find(u => u.id === t.ownerId);
+        return tOwner && tOwner.team === owner.team;
+    }).length + 1;
+    
+    const newTaskId = `T-${teamPrefix}-${String(teamTaskCount).padStart(2, '0')}`;
+
+    const newTask = {
+      id: newTaskId,
+      ownerId: newTaskOwnerId,
+      kpiId: selectedKpi || null,
+      title: newDocTitle,
+      description: newDocContent,
+      docCount: 0,
+      updatedAt: new Date().toISOString().split('T')[0].replace(/-/g, '.'),
+      timeRequired: newDocTime || '미정',
+      frequency: newDocFreq || '미정',
+      history: [{ date: new Date().toISOString().split('T')[0].replace(/-/g, '.'), type: 'create', user: '관리자', details: '신규 업무 생성' }]
+    };
+    
+    setTasks([newTask, ...tasks]);
+    setShowWriteModal(false);
+    alert(`업무가 등록되었습니다. (업무번호: ${newTaskId})`);
+  };
+
   const handleAddMember = () => {
       if (!newMemberName || !newMemberRole || !targetDeptForAdd) return alert("정보 입력 필요");
       const newId = `u-${Date.now()}`;
       setUsers([...users, { id: newId, name: newMemberName, role: newMemberRole, team: targetDeptForAdd, status: 'active', joinDate: '2025-01-25', email: 'new@nextstep.com' }]);
       setShowAddMemberModal(false); alert("추가됨");
+  };
+  const handleResignMember = (userId) => {
+      if (!window.confirm("정말 퇴사 처리하시겠습니까?")) return;
+      setUsers(users.map(u => u.id === userId ? { ...u, status: 'resigned', leaveDate: '2025-01-25' } : u));
+      alert("퇴사 처리가 완료되었습니다.");
+  };
+  const handleTransfer = (targetUserId) => {
+    if (!selectedTask) return;
+    const currentUser = users.find(u => u.id === selectedTask.ownerId);
+    const targetUser = users.find(u => u.id === targetUserId);
+    const updatedTasks = tasks.map(t => t.id === selectedTask.id ? { ...t, ownerId: targetUserId, history: [{ date: '2025.01.25', type: 'transfer', from: currentUser?.name, to: targetUser?.name, details: '담당자 변경' }, ...t.history] } : t);
+    setTasks(updatedTasks);
+    setTransferModalOpen(false);
+    setSelectedTask(null);
+    alert('이관 완료');
+  };
+
+  // Edit Task Handlers
+  const startEditingTask = () => {
+    setEditForm({ title: selectedTask.title, description: selectedTask.description, timeRequired: selectedTask.timeRequired, frequency: selectedTask.frequency });
+    setIsTaskEditing(true);
+  };
+  const saveEditedTask = () => {
+    const updatedTasks = tasks.map(t => t.id === selectedTask.id ? { ...t, ...editForm, updatedAt: new Date().toISOString().split('T')[0].replace(/-/g,'.') } : t);
+    setTasks(updatedTasks);
+    setSelectedTask({ ...selectedTask, ...editForm });
+    setIsTaskEditing(false);
+    alert("수정되었습니다.");
   };
 
   // --- Views ---
@@ -280,7 +300,7 @@ export default function NextStepApp() {
                 <button onClick={() => setRnrViewMode('team')} className={`px-3 py-1.5 rounded transition ${rnrViewMode === 'team' ? 'bg-indigo-100 text-indigo-700 font-bold' : 'text-gray-500'}`}>팀별</button>
                 <button onClick={() => setRnrViewMode('user')} className={`px-3 py-1.5 rounded transition ${rnrViewMode === 'user' ? 'bg-indigo-100 text-indigo-700 font-bold' : 'text-gray-500'}`}>인원별</button>
              </div>
-             <button onClick={() => { setNewDocTitle(""); setShowWriteModal(true); }} className="bg-indigo-600 text-white px-4 py-2 rounded-lg font-bold hover:bg-indigo-700 transition flex items-center shadow-md"><Plus size={18} className="mr-2"/> 업무 추가</button>
+             <button onClick={() => { setNewDocTitle(""); setNewTaskOwnerId(""); setShowWriteModal(true); }} className="bg-indigo-600 text-white px-4 py-2 rounded-lg font-bold hover:bg-indigo-700 transition flex items-center shadow-md"><Plus size={18} className="mr-2"/> 업무 추가</button>
           </div>
         </div>
 
@@ -296,8 +316,13 @@ export default function NextStepApp() {
                   {data.tasks.map(task => {
                     const owner = activeUsers.find(u => u.id === task.ownerId);
                     return (
-                      <div key={task.id} className="p-4 border border-gray-100 rounded-lg hover:shadow-md transition bg-gray-50/50 hover:bg-white cursor-pointer group">
+                      <div 
+                        key={task.id} 
+                        onClick={() => { setSelectedTask(task); setIsTaskEditing(false); setShowDetailModal(true); }}
+                        className="p-4 border border-gray-100 rounded-lg hover:shadow-md transition bg-gray-50/50 hover:bg-white cursor-pointer group"
+                      >
                         <div className="flex justify-between items-start mb-2"><span className="text-xs font-bold text-gray-500">{owner?.name} {owner?.role}</span>{task.kpiId && <span className="text-[10px] bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded font-bold">KPI</span>}</div>
+                        <div className="text-[10px] text-gray-400 mb-1 font-mono">{task.id}</div>
                         <h4 className="font-bold text-gray-800 text-sm mb-1">{task.title}</h4>
                         <div className="mt-2 flex gap-2 text-[10px] text-gray-400"><Timer size={10}/> {task.timeRequired} <span className="text-gray-300">|</span> <Repeat size={10}/> {task.frequency}</div>
                       </div>
@@ -318,7 +343,14 @@ export default function NextStepApp() {
                   </div>
                   <div className="space-y-2">
                      {tasks.filter(t => t.ownerId === u.id).map(t => (
-                        <div key={t.id} className="bg-gray-50 p-2 rounded border border-gray-100 text-sm flex justify-between"><span className="truncate">{t.title}</span></div>
+                        <div 
+                            key={t.id} 
+                            onClick={() => { setSelectedTask(t); setIsTaskEditing(false); setShowDetailModal(true); }}
+                            className="bg-gray-50 p-2 rounded border border-gray-100 text-sm flex justify-between cursor-pointer hover:bg-indigo-50 hover:border-indigo-200 transition"
+                        >
+                            <span className="truncate">{t.title}</span>
+                            <span className="text-xs text-gray-400 ml-2">{t.id}</span>
+                        </div>
                      ))}
                   </div>
                </div>
@@ -368,11 +400,14 @@ export default function NextStepApp() {
             <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
                 <div className="p-4 border-b border-gray-100 bg-gray-50 flex justify-between items-center"><h3 className="font-bold text-gray-700">임직원 리스트 ({activeUsers.length}명)</h3><button onClick={() => { setTargetDeptForAdd(teams[0]); setShowAddMemberModal(true); }} className="text-xs bg-indigo-600 text-white px-3 py-1.5 rounded hover:bg-indigo-700">입사자 등록</button></div>
                 <div className="max-h-[400px] overflow-y-auto">
-                    <table className="w-full text-sm text-left"><thead className="bg-white text-gray-500 border-b border-gray-100 sticky top-0"><tr><th className="px-4 py-2">이름</th><th className="px-4 py-2">부서/직책</th><th className="px-4 py-2">상태</th><th className="px-4 py-2 text-right">관리</th></tr></thead><tbody className="divide-y divide-gray-50">{users.map(u => (<tr key={u.id}><td className="px-4 py-3 font-medium">{u.name}</td><td className="px-4 py-3 text-gray-500">{u.team} {u.role}</td><td className="px-4 py-3">{u.status === 'active' ? <span className="text-green-600 bg-green-50 px-2 py-0.5 rounded text-xs">재직</span> : <span className="text-red-500 bg-red-50 px-2 py-0.5 rounded text-xs">퇴사</span>}</td><td className="px-4 py-3 text-right"><button className="text-gray-400 hover:text-red-500 text-xs underline">수정</button></td></tr>))}</tbody></table>
+                    <table className="w-full text-sm text-left"><thead className="bg-white text-gray-500 border-b border-gray-100 sticky top-0"><tr><th className="px-4 py-2">이름</th><th className="px-4 py-2">부서/직책</th><th className="px-4 py-2">상태</th><th className="px-4 py-2 text-right">관리</th></tr></thead><tbody className="divide-y divide-gray-50">{users.map(u => (<tr key={u.id}><td className="px-4 py-3 font-medium">{u.name}</td><td className="px-4 py-3 text-gray-500">{u.team} {u.role}</td><td className="px-4 py-3">{u.status === 'active' ? <span className="text-green-600 bg-green-50 px-2 py-0.5 rounded text-xs">재직</span> : <span className="text-red-500 bg-red-50 px-2 py-0.5 rounded text-xs">퇴사</span>}</td><td className="px-4 py-3 text-right"><button onClick={() => handleResignMember(u.id)} className="text-gray-400 hover:text-red-500 text-xs underline">퇴사 처리</button></td></tr>))}</tbody></table>
                 </div>
             </div>
         ) : (
-            <div className="bg-white p-10 text-center text-gray-500 rounded-xl border border-gray-200 border-dashed">현재 {currentPlan} 플랜 이용 중입니다.</div>
+            <div className="bg-white p-10 text-center text-gray-500 rounded-xl border border-gray-200 border-dashed">
+                <p className="mb-4">현재 {currentPlan} 플랜 이용 중입니다.</p>
+                <button onClick={handleResetData} className="flex items-center mx-auto text-red-500 hover:text-red-700 text-sm font-bold bg-red-50 px-4 py-2 rounded-lg border border-red-200"><Trash2 size={16} className="mr-2"/> 데이터 초기화 (오류 발생 시)</button>
+            </div>
         )}
     </div>
   );
@@ -437,14 +472,71 @@ export default function NextStepApp() {
         {activeTab === 'eval' && (currentPlan === 'PRO' ? <EvalView /> : <ProFeatureLocked title="성과 평가" />)}
       </main>
 
-      {/* Modals */}
+      {/* UPDATED Write Modal with Owner Selection */}
       {showWriteModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl p-6 animate-fade-in">
-            <h3 className="text-lg font-bold mb-4">새 업무 등록</h3>
-            <input className="w-full border p-2 rounded mb-2" placeholder="업무 제목" value={newDocTitle} onChange={e=>setNewDocTitle(e.target.value)} />
-            <textarea className="w-full border p-2 rounded h-32 mb-4" placeholder="업무 내용" value={newDocContent} onChange={e=>setNewDocContent(e.target.value)} />
-            <div className="flex justify-end gap-2"><button onClick={() => setShowWriteModal(false)} className="px-4 py-2 text-gray-500">취소</button><button onClick={handleSaveTask} className="px-4 py-2 bg-indigo-600 text-white rounded">저장</button></div>
+            <div className="flex justify-between items-center mb-4">
+               <h3 className="text-lg font-bold text-gray-900">새 업무 등록</h3>
+               <button onClick={() => setShowWriteModal(false)} className="text-gray-400 hover:text-gray-600"><X size={24}/></button>
+            </div>
+            
+            <div className="space-y-4">
+               <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">담당자 (Owner)</label>
+                  <select 
+                    value={newTaskOwnerId}
+                    onChange={(e) => setNewTaskOwnerId(e.target.value)}
+                    className="w-full border rounded-lg px-3 py-2 bg-white font-medium text-gray-800"
+                  >
+                     <option value="">담당자를 선택하세요</option>
+                     {teams.map(team => (
+                        <optgroup key={team} label={team}>
+                           {activeUsers.filter(u => u.team === team).map(u => (
+                              <option key={u.id} value={u.id}>{u.name} ({u.role})</option>
+                           ))}
+                        </optgroup>
+                     ))}
+                  </select>
+               </div>
+
+               <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">관련 KPI</label>
+                  <select value={selectedKpi} onChange={(e) => setSelectedKpi(e.target.value)} className="w-full border rounded-lg px-3 py-2">
+                     <option value="">선택 안함 (일반 업무)</option>
+                     {kpis.filter(k=>k.year==='2025').map(k=><option key={k.id} value={k.id}>[{k.team}] {k.title}</option>)}
+                  </select>
+               </div>
+
+               <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">업무 제목</label>
+                  <input type="text" value={newDocTitle} onChange={(e) => setNewDocTitle(e.target.value)} className="w-full border rounded-lg px-3 py-2" placeholder="예: 매장 순회 점검" />
+               </div>
+
+               <div className="grid grid-cols-2 gap-4">
+                   <div>
+                       <label className="block text-sm font-medium text-gray-700 mb-1">소요 시간</label>
+                       <input type="text" value={newDocTime} onChange={(e) => setNewDocTime(e.target.value)} className="w-full border rounded-lg px-3 py-2" placeholder="2H" />
+                   </div>
+                   <div>
+                       <label className="block text-sm font-medium text-gray-700 mb-1">빈도</label>
+                       <input type="text" value={newDocFreq} onChange={(e) => setNewDocFreq(e.target.value)} className="w-full border rounded-lg px-3 py-2" placeholder="매주" />
+                   </div>
+               </div>
+
+               <div>
+                  <div className="flex justify-between items-center mb-1">
+                      <label className="block text-sm font-medium text-gray-700">세부 내용</label>
+                      <button onClick={handleAiDraft} disabled={isAiWriting} className="text-xs bg-indigo-50 text-indigo-700 px-2 py-1 rounded font-bold">{isAiWriting ? "작성 중..." : "AI 초안 작성"}</button>
+                  </div>
+                  <textarea value={newDocContent} onChange={(e) => setNewDocContent(e.target.value)} className="w-full border rounded-lg px-3 py-2 h-24 resize-none" />
+               </div>
+            </div>
+
+            <div className="p-4 bg-gray-50 rounded-b-2xl flex justify-end space-x-3 -mx-6 -mb-6 mt-6">
+              <button onClick={() => setShowWriteModal(false)} className="px-4 py-2 text-gray-600 hover:bg-gray-200 rounded-lg">취소</button>
+              <button onClick={handleSaveTask} className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 flex items-center space-x-2"><Save size={18} /><span>저장</span></button>
+            </div>
           </div>
         </div>
       )}
@@ -470,6 +562,143 @@ export default function NextStepApp() {
                <p className="text-gray-500 mb-6">KPI 관리, 성과 평가, AI 분석 등 회사의 성장을 위한 모든 기능을 잠금 해제하세요.</p>
                <button onClick={() => { setCurrentPlan('PRO'); setShowUpgradeModal(false); alert("Pro 플랜이 활성화되었습니다! (Demo)"); }} className="w-full bg-indigo-600 text-white py-3 rounded-xl font-bold text-lg hover:bg-indigo-700 transition shadow-lg">월 50,000원에 시작하기</button>
            </div>
+        </div>
+      )}
+
+      {/* Task Detail Modal (With Edit Mode) */}
+      {showDetailModal && selectedTask && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl animate-fade-in-up">
+            <div className="p-5 border-b border-gray-100 flex justify-between items-start">
+              <div className="flex-1">
+                <span className="text-xs font-bold text-indigo-600 mb-1 block">업무 상세 정보</span>
+                {isTaskEditing ? (
+                    <input 
+                        className="w-full text-xl font-bold text-gray-900 border-b-2 border-indigo-200 focus:border-indigo-600 outline-none pb-1"
+                        value={editForm.title}
+                        onChange={(e) => setEditForm({...editForm, title: e.target.value})}
+                    />
+                ) : (
+                    <h3 className="text-xl font-bold text-gray-900 leading-snug">{selectedTask.title}</h3>
+                )}
+              </div>
+              <div className="flex items-center ml-2">
+                  {!isTaskEditing && (
+                      <button onClick={startEditingTask} className="text-gray-400 hover:text-indigo-600 p-1 mr-1 transition">
+                          <Edit3 size={18}/>
+                      </button>
+                  )}
+                  <button onClick={() => setShowDetailModal(false)} className="text-gray-400 hover:text-gray-600 p-1">
+                      <X size={24}/>
+                  </button>
+              </div>
+            </div>
+            
+            <div className="p-6 space-y-6">
+              {/* 담당자 정보 (Read-only for now) */}
+              <div className="flex items-center justify-between bg-gray-50 p-3 rounded-lg border border-gray-100">
+                <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center text-sm font-bold border border-gray-200 text-gray-600">
+                    {getUserInfo(selectedTask.ownerId).name[0]}
+                    </div>
+                    <div>
+                    <div className="font-bold text-sm text-gray-900">{getUserInfo(selectedTask.ownerId).name}</div>
+                    <div className="text-xs text-gray-500">{getUserInfo(selectedTask.ownerId).role} | {getUserInfo(selectedTask.ownerId).team}</div>
+                    </div>
+                </div>
+                <div className="text-xs font-mono text-gray-400 bg-white px-2 py-1 rounded border border-gray-200">
+                    {selectedTask.id}
+                </div>
+              </div>
+
+              {/* 주요 내용 */}
+              <div>
+                <h4 className="text-sm font-bold text-gray-700 mb-2 flex items-center"><AlignLeft size={16} className="mr-2"/>업무 내용</h4>
+                {isTaskEditing ? (
+                    <textarea 
+                        className="w-full text-sm text-gray-600 leading-relaxed bg-white border border-gray-300 rounded-lg p-3 h-32 outline-none focus:ring-2 focus:ring-indigo-500"
+                        value={editForm.description}
+                        onChange={(e) => setEditForm({...editForm, description: e.target.value})}
+                    />
+                ) : (
+                    <div className="text-sm text-gray-600 leading-relaxed bg-white border border-gray-200 rounded-lg p-3 whitespace-pre-wrap">
+                      {selectedTask.description}
+                    </div>
+                )}
+              </div>
+
+              {/* 속성 정보 (Grid) */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-gray-50 p-3 rounded-lg border border-gray-100">
+                  <div className="text-xs text-gray-500 mb-1 flex items-center"><Timer size={12} className="mr-1"/> 소요 시간</div>
+                  {isTaskEditing ? (
+                      <input 
+                        className="font-bold text-sm text-gray-800 bg-white border border-gray-300 rounded px-2 py-1 w-full"
+                        value={editForm.timeRequired}
+                        onChange={(e) => setEditForm({...editForm, timeRequired: e.target.value})}
+                      />
+                  ) : (
+                      <div className="font-bold text-sm text-gray-800">{selectedTask.timeRequired}</div>
+                  )}
+                </div>
+                <div className="bg-gray-50 p-3 rounded-lg border border-gray-100">
+                  <div className="text-xs text-gray-500 mb-1 flex items-center"><Repeat size={12} className="mr-1"/> 빈도</div>
+                  {isTaskEditing ? (
+                      <input 
+                        className="font-bold text-sm text-gray-800 bg-white border border-gray-300 rounded px-2 py-1 w-full"
+                        value={editForm.frequency}
+                        onChange={(e) => setEditForm({...editForm, frequency: e.target.value})}
+                      />
+                  ) : (
+                      <div className="font-bold text-sm text-gray-800">{selectedTask.frequency}</div>
+                  )}
+                </div>
+              </div>
+
+              {/* KPI 연결 정보 (Read-only) */}
+              {selectedTask.kpiId && (
+                <div className="bg-purple-50 p-3 rounded-lg border border-purple-100">
+                  <div className="text-xs font-bold text-purple-600 mb-1 flex items-center"><Target size={12} className="mr-1"/> 연동된 KPI</div>
+                  <div className="text-sm font-medium text-purple-900">{getKpiInfo(selectedTask.kpiId)?.title || '정보 없음'}</div>
+                </div>
+              )}
+
+              {/* 하단 액션 버튼 */}
+              <div className="flex justify-end space-x-2 pt-2 border-t border-gray-100">
+                 {isTaskEditing ? (
+                     <>
+                        <button 
+                            onClick={() => setIsTaskEditing(false)}
+                            className="px-4 py-2 text-sm text-gray-500 hover:bg-gray-100 rounded-lg transition"
+                        >
+                            취소
+                        </button>
+                        <button 
+                            onClick={saveEditedTask}
+                            className="px-4 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition font-bold"
+                        >
+                            저장하기
+                        </button>
+                     </>
+                 ) : (
+                     <>
+                        <button 
+                            onClick={() => { setTransferModalOpen(true); setShowDetailModal(false); }}
+                            className="flex items-center text-xs font-bold text-gray-500 hover:text-indigo-600 px-3 py-2 rounded hover:bg-gray-100 transition"
+                        >
+                            <ArrowRightLeft size={14} className="mr-1"/> 업무 이관
+                        </button>
+                        <button 
+                            onClick={() => alert("히스토리 기능 준비중")}
+                            className="flex items-center text-xs font-bold text-gray-500 hover:text-indigo-600 px-3 py-2 rounded hover:bg-gray-100 transition"
+                        >
+                            <History size={14} className="mr-1"/> 변경 이력
+                        </button>
+                     </>
+                 )}
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>
