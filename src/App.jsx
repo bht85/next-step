@@ -31,6 +31,48 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
+// --- 더미 데이터 (데이터 초기화용) ---
+const initialUsers = [
+  { id: 'ceo', name: '김대표', team: '임원실', role: 'CEO', phone: '010-1111-0001', email: 'ceo@franchise.com', status: 'active', joinDate: '2015-03-01' },
+  { id: 'sales1', name: '박영업', team: '영업팀', role: '팀장', phone: '010-2222-0001', email: 'park.sales@franchise.com', status: 'active', joinDate: '2018-05-10' },
+  { id: 'sales2', name: '최매출', team: '영업팀', role: '과장', phone: '010-2222-0002', email: 'choi.sales@franchise.com', status: 'active', joinDate: '2020-01-15' },
+  { id: 'sales3', name: '정개척', team: '영업팀', role: '대리', phone: '010-2222-0003', email: 'jung.sales@franchise.com', status: 'active', joinDate: '2022-08-20' },
+  { id: 'ops1', name: '이운영', team: '운영팀', role: '팀장', phone: '010-3333-0001', email: 'lee.ops@franchise.com', status: 'active', joinDate: '2017-11-01' },
+  { id: 'ops2', name: '김슈퍼', team: '운영팀', role: 'SV(슈퍼바이저)', phone: '010-3333-0002', email: 'kim.sv@franchise.com', status: 'active', joinDate: '2019-04-05' },
+  { id: 'mkt1', name: '임마케', team: '마케팅팀', role: '팀장', phone: '010-4444-0001', email: 'lim.mkt@franchise.com', status: 'active', joinDate: '2019-12-01' },
+  { id: 'rnd1', name: '최맛나', team: '상품개발팀', role: '팀장(셰프)', phone: '010-5555-0001', email: 'choi.chef@franchise.com', status: 'active', joinDate: '2016-08-20' },
+  { id: 'fin1', name: '나재무', team: '경영지원팀', role: '팀장(CFO)', phone: '010-6666-0001', email: 'na.cfo@franchise.com', status: 'active', joinDate: '2017-01-05' },
+];
+
+const initialKPIs = [
+  { id: 'KPI-CO-25', year: '2025', team: '전사', type: 'QUANT', title: '연 매출 300억 달성', target: 300, current: 185, unit: '억', status: 'warning', description: '기존점 매출 증대 및 신규 출점을 통한 외형 성장' },
+  { id: 'KPI-SA-01', year: '2025', team: '영업팀', type: 'QUANT', title: '가맹점 200호점 돌파', target: 200, current: 142, unit: '개', status: 'warning', description: '지방 거점 도시 신규 출점 집중' },
+];
+
+const initialTasks = [
+  { id: 'T-SA-01', ownerId: 'sales1', kpiId: 'KPI-SA-01', title: '창업 박람회 부스 운영', description: '프랜차이즈 박람회 상담 및 DB 확보', docCount: 2, updatedAt: '2025.01.10', timeRequired: '20H', frequency: '분기 1회', history: [] },
+  { id: 'T-OP-01', ownerId: 'ops1', kpiId: null, title: '체크리스트 개편', description: '점검 항목 최적화 및 모바일화', docCount: 1, updatedAt: '2025.01.05', timeRequired: '10H', frequency: '일회성', history: [] },
+];
+
+const initialOrgChart = {
+  name: "김대표 CEO",
+  role: "대표이사",
+  hasRnR: true,
+  children: [
+    { name: "영업팀", type: "department", children: [{ name: "박영업", role: "팀장", hasRnR: true, id: 'sales1' }, { name: "최매출", role: "과장", hasRnR: true, id: 'sales2' }, { name: "정개척", role: "대리", hasRnR: true, id: 'sales3' }] },
+    { name: "운영팀", type: "department", children: [{ name: "이운영", role: "팀장", hasRnR: true, id: 'ops1' }, { name: "김슈퍼", role: "SV", hasRnR: true, id: 'ops2' }] },
+    { name: "마케팅팀", type: "department", children: [{ name: "임마케", role: "팀장", hasRnR: true, id: 'mkt1' }] },
+    { name: "상품개발팀", type: "department", children: [{ name: "최맛나", role: "팀장", hasRnR: true, id: 'rnd1' }] },
+    { name: "경영지원팀", type: "department", children: [{ name: "나재무", role: "팀장", hasRnR: true, id: 'fin1' }] }
+  ]
+};
+
+const subscriptionData = {
+  plan: "Pro", status: "active", price: "50,000원 / 월", nextBilling: "2025.02.15", paymentMethod: "법인카드 (**** 5678)",
+  usage: { seats: { used: 23, total: 30 }, storage: { used: 120, total: 500, unit: "GB" }, aiCredits: { used: 4500, total: 10000 } },
+  billingHistory: [ { date: "2025.01.15", amount: "50,000원", status: "결제완료" } ]
+};
+
 // --- Helper Functions ---
 const Badge = ({ children, color = 'blue' }) => {
   const colors = {
@@ -82,17 +124,20 @@ const ToastProvider = ({ children }) => {
         </ToastContext.Provider>
     );
 };
-const useToast = () => useContext(ToastContext);
-
+const useToast = () => {
+    const context = useContext(ToastContext);
+    if (!context) return () => {}; // Fallback if used outside provider (should not happen now)
+    return context;
+};
 
 /* ==================================================================================
-   [2] 메인 애플리케이션 (Main App)
+   [2] 메인 애플리케이션 내용 (Main Content)
    ================================================================================== */
 
 function NextStepAppContent() {
   const [currentPlan, setCurrentPlan] = useState('PRO'); 
   const [activeTab, setActiveTab] = useState('rnr'); 
-  const toast = useToast(); // Use Custom Toast
+  const toast = useToast(); 
   
   // --- Data State ---
   const [users, setUsers] = useState(() => JSON.parse(localStorage.getItem('ns_users_v2')) || initialUsers);
@@ -101,7 +146,6 @@ function NextStepAppContent() {
   const [reviews, setReviews] = useState(() => JSON.parse(localStorage.getItem('ns_reviews_v2')) || []);
   const [orgData, setOrgData] = useState(() => JSON.parse(localStorage.getItem('ns_orgData_v2')) || initialOrgChart);
 
-  // Sync to LocalStorage
   useEffect(() => { localStorage.setItem('ns_users_v2', JSON.stringify(users)); }, [users]);
   useEffect(() => { localStorage.setItem('ns_tasks_v2', JSON.stringify(tasks)); }, [tasks]);
   useEffect(() => { localStorage.setItem('ns_kpis_v2', JSON.stringify(kpis)); }, [kpis]);
@@ -122,13 +166,11 @@ function NextStepAppContent() {
   const [isTaskEditing, setIsTaskEditing] = useState(false);
   const [editForm, setEditForm] = useState({ title: "", description: "", timeRequired: "", frequency: "" });
   
-  // Filters
+  // Filters & Inputs
   const [selectedKpiYear, setSelectedKpiYear] = useState('2025');
   const [selectedEvalPeriod, setSelectedEvalPeriod] = useState('2025 1Q');
   const [selectedEvalUser, setSelectedEvalUser] = useState('sales1'); 
   const [evalViewType, setEvalViewType] = useState('team');
-
-  // Input States
   const [newDocTitle, setNewDocTitle] = useState("");
   const [newDocContent, setNewDocContent] = useState("");
   const [newDocTime, setNewDocTime] = useState(""); 
@@ -137,8 +179,6 @@ function NextStepAppContent() {
   const [newTaskOwnerId, setNewTaskOwnerId] = useState(""); 
   const [newMemberName, setNewMemberName] = useState("");
   const [newMemberRole, setNewMemberRole] = useState("");
-  
-  // AI States
   const [isAiWriting, setIsAiWriting] = useState(false);
   const [aiInsightOpen, setAiInsightOpen] = useState(false);
   const [aiInsightResult, setAiInsightResult] = useState("");
@@ -162,7 +202,7 @@ function NextStepAppContent() {
       return { year, rate };
   }).sort((a,b) => a.year.localeCompare(b.year));
 
-  /* --- Handlers (Logic) --- */
+  /* --- Handlers --- */
   const handleResetData = () => {
       if(window.confirm("모든 데이터를 초기화하고 프랜차이즈 예시 데이터로 복구하시겠습니까?")) {
           localStorage.setItem('ns_users_v2', JSON.stringify(initialUsers));
@@ -228,10 +268,7 @@ function NextStepAppContent() {
   const handleAiDraft = async () => { if (!newDocTitle) return toast("제목을 입력하세요", 'error'); setIsAiWriting(true); const r = await generateAIContent(`제목: ${newDocTitle}`); setNewDocContent(r); setIsAiWriting(false); };
   const handleAiInsight = async () => { setAiInsightOpen(true); setIsAiLoading(true); const r = await generateAIContent("분석"); setAiInsightResult(r); setIsAiLoading(false); };
 
-  /* ==================================================================================
-     [3] 화면 컴포넌트 (Views) - 깔끔하게 분리
-     ================================================================================== */
-
+  /* --- Views --- */
   const NavigationBar = () => {
     const menuItems = [
       { id: 'dashboard', label: '대시보드', icon: LayoutDashboard, proOnly: true },
@@ -320,7 +357,9 @@ function NextStepAppContent() {
           <div className="flex items-center space-x-4"><div className="text-right hidden sm:block"><div className="text-sm font-bold">김대표 님</div><div className="text-xs text-gray-500">CEO</div></div><div className="w-9 h-9 bg-gray-200 rounded-full flex items-center justify-center text-xs font-bold text-gray-600">김</div></div>
         </div>
       </header>
+
       <NavigationBar />
+
       <main className="max-w-6xl mx-auto px-4 py-8">
         {activeTab === 'rnr' && <RnRView />}
         {activeTab === 'org' && <OrgChartView />}
@@ -377,11 +416,6 @@ function NextStepAppContent() {
            <div className="bg-white rounded-2xl w-full max-w-md p-6"><h3 className="text-lg font-bold mb-4">업무 이관</h3><div className="grid gap-2 max-h-60 overflow-y-auto">{users.filter(u=>u.id!==selectedTask.ownerId && u.status!=='resigned').map(u=>(<button key={u.id} onClick={()=>handleTransfer(u.id)} className="p-3 border rounded hover:bg-gray-50 text-left w-full flex justify-between"><span>{u.name}</span><span className="text-gray-400 text-xs">{u.team}</span></button>))}</div><button onClick={()=>setTransferModalOpen(false)} className="mt-4 w-full py-2 text-gray-500">취소</button></div>
         </div>
       )}
-      
-      {/* Toast Container */}
-      <ToastProvider>
-        <NextStepAppContent />
-      </ToastProvider>
     </div>
   );
 }
