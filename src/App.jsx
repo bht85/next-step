@@ -224,12 +224,17 @@ export default function NextStepApp() {
 
   // --- NEW: Calendar View ---
   const CalendarView = () => {
-      // Mock generating calendar data based on tasks
-      // Simple logic: tasks with '매일' -> show often, '주간' -> show once a week
+      // 오늘 날짜 가져오기 (자동 세팅)
+      const today = new Date();
+      const currentYear = today.getFullYear();
+      const currentMonth = today.getMonth() + 1;
+      const currentDate = today.getDate();
+
       return (
           <div className="space-y-6 animate-fade-in">
               <div className="flex justify-between items-center bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
-                  <h2 className="text-lg font-bold text-gray-800 flex items-center"><CalendarIcon className="mr-2 text-indigo-600"/> 2025년 1월 업무 일정</h2>
+                  {/* 동적으로 현재 년월 표시 */}
+                  <h2 className="text-lg font-bold text-gray-800 flex items-center"><CalendarIcon className="mr-2 text-indigo-600"/> {currentYear}년 {currentMonth}월 업무 일정</h2>
                   <div className="flex gap-2">
                       <button className="p-1 rounded hover:bg-gray-100"><ChevronLeft/></button>
                       <span className="font-bold text-gray-700">Today</span>
@@ -245,9 +250,13 @@ export default function NextStepApp() {
                           const day = i + 1;
                           // Fake logic to distribute tasks
                           const dayTasks = tasks.filter((t, idx) => (idx + day) % 7 === 0 || (t.frequency === '매일' && day % 2 === 0)).slice(0, 3);
+                          
+                          // 오늘 날짜 하이라이팅
+                          const isToday = day === currentDate;
+
                           return (
                               <div key={day} className="border-b border-r border-gray-100 p-2 min-h-[80px] relative hover:bg-gray-50 transition">
-                                  <span className={`text-sm font-medium ${day === 25 ? 'bg-indigo-600 text-white w-6 h-6 rounded-full flex items-center justify-center' : 'text-gray-700'}`}>{day}</span>
+                                  <span className={`text-sm font-medium ${isToday ? 'bg-indigo-600 text-white w-6 h-6 rounded-full flex items-center justify-center' : 'text-gray-700'}`}>{day}</span>
                                   <div className="mt-2 space-y-1">
                                       {dayTasks.map(t => (
                                           <div key={t.id} className="text-[10px] bg-indigo-50 text-indigo-700 px-1 py-0.5 rounded truncate cursor-pointer hover:bg-indigo-100" onClick={() => { setSelectedTask(t); setShowDetailModal(true); }}>
