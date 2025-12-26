@@ -10,7 +10,7 @@ import {
 } from 'lucide-react';
 import { initializeApp } from "firebase/app";
 import { 
-  getFirestore, collection, addDoc, getDocs, updateDoc, deleteDoc, doc 
+  getFirestore, collection, addDoc, getDocs, updateDoc, deleteDoc, doc, setDoc 
 } from "firebase/firestore";
 
 /* ==================================================================================
@@ -87,7 +87,6 @@ const initialTasks = [
   // 운영
   { id: 'T-OP-01', ownerId: 'ops1', kpiId: 'KPI-OP-01', title: '체크리스트 개편', description: '점검 항목 최적화 및 모바일화', docCount: 1, updatedAt: '2025.01.05', timeRequired: '10H', frequency: '일회성', history: [] },
   { id: 'T-OP-02', ownerId: 'ops2', kpiId: 'KPI-OP-02', title: '권역 순회 점검', description: '가맹점 QSC 점검 및 점주 면담', docCount: 12, updatedAt: '2025.01.22', timeRequired: '6H', frequency: '매일', history: [] },
-  { id: 'T-OP-03', ownerId: 'ops6', kpiId: 'KPI-OP-01', title: '신규 점주 입문 교육 진행', description: '본사 조리 교육 및 CS 이론 교육 (3박 4일 과정)', docCount: 3, updatedAt: '2025.01.15', timeRequired: '32H', frequency: '월 1회', history: [] },
   // 마케팅
   { id: 'T-MK-01', ownerId: 'mkt1', kpiId: 'KPI-MK-01', title: '봄 시즌 프로모션 기획', description: '체험단 운영 및 포스터 디자인 발주', docCount: 4, updatedAt: '2025.01.18', timeRequired: '15H', frequency: '시즌별', history: [] },
   // 개발
@@ -197,28 +196,37 @@ function NextStepAppContent() {
   const [showWriteModal, setShowWriteModal] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false); 
   const [showDetailModal, setShowDetailModal] = useState(false); 
+  const [showKpiModal, setShowKpiModal] = useState(false); // New KPI Modal State
   const [showAddMemberModal, setShowAddMemberModal] = useState(false);
   const [transferModalOpen, setTransferModalOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState(null); 
+  const [selectedKpiData, setSelectedKpiData] = useState(null); // For Editing KPI
   const [rnrViewMode, setRnrViewMode] = useState('team'); 
   const [isOrgEditMode, setIsOrgEditMode] = useState(false);
   const [adminTab, setAdminTab] = useState('hr');
   const [targetDeptForAdd, setTargetDeptForAdd] = useState("");
   const [isTaskEditing, setIsTaskEditing] = useState(false);
   const [editForm, setEditForm] = useState({ title: "", description: "", timeRequired: "", frequency: "" });
-  const [filterTeam, setFilterTeam] = useState('ALL'); // Calendar Team Filter
+  const [filterTeam, setFilterTeam] = useState('ALL'); 
   
   // Filters & Inputs
   const [selectedKpiYear, setSelectedKpiYear] = useState('2025');
   const [selectedEvalPeriod, setSelectedEvalPeriod] = useState('2025 1Q');
   const [selectedEvalUser, setSelectedEvalUser] = useState('sales1'); 
   const [evalViewType, setEvalViewType] = useState('team');
+  
+  // Task Form State
   const [newDocTitle, setNewDocTitle] = useState("");
   const [newDocContent, setNewDocContent] = useState("");
   const [newDocTime, setNewDocTime] = useState(""); 
   const [newDocFreq, setNewDocFreq] = useState("");
   const [selectedKpi, setSelectedKpi] = useState(""); 
   const [newTaskOwnerId, setNewTaskOwnerId] = useState(""); 
+  
+  // KPI Form State
+  const [kpiForm, setKpiForm] = useState({ title: "", team: "", type: "QUANT", target: "", current: "", unit: "", description: "" });
+
+  // Member Form State
   const [newMemberName, setNewMemberName] = useState("");
   const [newMemberRole, setNewMemberRole] = useState("");
 
@@ -272,6 +280,39 @@ function NextStepAppContent() {
     try { await addDoc(collection(db, "tasks"), newTask); } catch (e) { console.log("DB Error (Local OK)"); }
     setShowWriteModal(false); 
     toast(`업무가 등록되었습니다. (${newTaskId})`, 'success');
+  };
+
+  // KPI Handlers
+  const handleOpenKpiModal = (kpi = null) => {
+      if (kpi) {
+          setSelectedKpiData(kpi);
+          setKpiForm({ title: kpi.title, team: kpi.team, type: kpi.type, target: kpi.target, current: kpi.current, unit: kpi.unit, description: kpi.description });
+      } else {
+          setSelectedKpiData(null);
+          setKpiForm({ title: "", team: teams[0] || "", type: "QUANT", target: "", current: "", unit: "", description: "" });
+      }
+      setShowKpiModal(true);
+  };
+
+  const handleSaveKpi = async () => {
+      if (!kpiForm.title || !kpiForm.team) return toast("필수 정보를 입력해주세요.", 'error');
+      
+      let updatedKpis;
+      if (selectedKpiData) {
+          // Update Existing
+           updatedKpis = kpis.map(k => k.id === selectedKpiData.id ? { ...k, ...kpiForm } : k);
+           toast("KPI가 수정되었습니다.", 'success');
+      } else {
+          // Create New
+          const newId = `KPI-${getTeamCode(kpiForm.team)}-${Date.now().toString().slice(-4)}`;
+          const newKpi = { id: newId, year: selectedKpiYear, ...kpiForm, status: 'warning' };
+          updatedKpis = [newKpi, ...kpis];
+          
+          try { await addDoc(collection(db, "kpis"), newKpi); } catch (e) { console.log("DB Error (Local OK)"); }
+          toast("새 KPI가 등록되었습니다.", 'success');
+      }
+      setKpis(updatedKpis);
+      setShowKpiModal(false);
   };
 
   const handleAddMember = () => { 
@@ -332,14 +373,12 @@ function NextStepAppContent() {
     );
   };
 
-  // --- UPDATED: Calendar View with Team Filter ---
   const CalendarView = () => {
       const today = new Date();
       const currentYear = today.getFullYear();
       const currentMonth = today.getMonth() + 1;
       const currentDate = today.getDate();
 
-      // 필터링된 태스크 구하기
       const filteredTasksForCalendar = tasks.filter(task => {
           if (filterTeam === 'ALL') return true;
           const owner = users.find(u => u.id === task.ownerId);
@@ -351,22 +390,10 @@ function NextStepAppContent() {
               <div className="flex flex-col md:flex-row justify-between items-start md:items-center bg-white p-4 rounded-xl border border-gray-200 shadow-sm gap-4">
                   <h2 className="text-lg font-bold text-gray-800 flex items-center"><CalendarIcon className="mr-2 text-indigo-600"/> {currentYear}년 {currentMonth}월 업무 일정</h2>
                   <div className="flex items-center gap-3">
-                      {/* 팀 필터 드롭다운 */}
-                      <select 
-                        value={filterTeam} 
-                        onChange={(e) => setFilterTeam(e.target.value)}
-                        className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm font-medium text-gray-700 outline-none focus:ring-2 focus:ring-indigo-500"
-                      >
-                          <option value="ALL">전체 조직</option>
-                          {teams.map(team => (
-                              <option key={team} value={team}>{team}</option>
-                          ))}
+                      <select value={filterTeam} onChange={(e) => setFilterTeam(e.target.value)} className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm font-medium text-gray-700 outline-none focus:ring-2 focus:ring-indigo-500">
+                          <option value="ALL">전체 조직</option>{teams.map(team => (<option key={team} value={team}>{team}</option>))}
                       </select>
-                      <div className="flex gap-1 bg-gray-100 p-1 rounded-lg">
-                        <button className="p-1 rounded hover:bg-gray-200 text-gray-500"><ChevronLeft size={16}/></button>
-                        <span className="font-bold text-gray-700 px-2 flex items-center text-sm">Today</span>
-                        <button className="p-1 rounded hover:bg-gray-200 text-gray-500"><ChevronRight size={16}/></button>
-                      </div>
+                      <div className="flex gap-1 bg-gray-100 p-1 rounded-lg"><button className="p-1 rounded hover:bg-gray-200 text-gray-500"><ChevronLeft size={16}/></button><span className="font-bold text-gray-700 px-2 flex items-center text-sm">Today</span><button className="p-1 rounded hover:bg-gray-200 text-gray-500"><ChevronRight size={16}/></button></div>
                   </div>
               </div>
               <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
@@ -374,7 +401,6 @@ function NextStepAppContent() {
                   <div className="grid grid-cols-7 h-[600px] overflow-y-auto">
                       {Array.from({length: 31}).map((_, i) => {
                           const day = i + 1;
-                          // 필터링된 태스크 사용
                           const dayTasks = filteredTasksForCalendar.filter((t, idx) => (idx + day) % 7 === 0 || (t.frequency === '매일' && day % 2 === 0)).slice(0, 3);
                           const isToday = day === currentDate;
                           return (
@@ -383,21 +409,9 @@ function NextStepAppContent() {
                                   <div className="space-y-1">
                                       {dayTasks.map(t => {
                                           const owner = users.find(u => u.id === t.ownerId);
-                                          // 팀별 색상 구분 (간단하게)
-                                          const teamColor = owner?.team.includes('영업') ? 'bg-blue-50 text-blue-700' : 
-                                                            owner?.team.includes('운영') ? 'bg-green-50 text-green-700' :
-                                                            owner?.team.includes('마케팅') ? 'bg-pink-50 text-pink-700' : 'bg-indigo-50 text-indigo-700';
-                                          
+                                          const teamColor = owner?.team.includes('영업') ? 'bg-blue-50 text-blue-700' : owner?.team.includes('운영') ? 'bg-green-50 text-green-700' : owner?.team.includes('마케팅') ? 'bg-pink-50 text-pink-700' : 'bg-indigo-50 text-indigo-700';
                                           return (
-                                            <div 
-                                                key={t.id} 
-                                                className={`text-[10px] px-1.5 py-1 rounded truncate cursor-pointer hover:opacity-80 transition shadow-sm ${teamColor}`}
-                                                onClick={(e) => { 
-                                                    e.stopPropagation(); 
-                                                    setSelectedTask(t); 
-                                                    setShowDetailModal(true); 
-                                                }}
-                                            >
+                                            <div key={t.id} className={`text-[10px] px-1.5 py-1 rounded truncate cursor-pointer hover:opacity-80 transition shadow-sm ${teamColor}`} onClick={(e) => { e.stopPropagation(); setSelectedTask(t); setShowDetailModal(true); }}>
                                                 {t.title}
                                             </div>
                                           );
@@ -435,7 +449,44 @@ function NextStepAppContent() {
   const AdminView = () => (<div className="space-y-6 animate-fade-in"><div className="bg-gradient-to-r from-gray-900 to-gray-800 rounded-xl p-6 text-white shadow-lg flex justify-between items-center"><div><h2 className="text-xl font-bold flex items-center"><Settings className="mr-2"/> 관리자 설정 (Demo)</h2><p className="text-gray-400 text-sm">요금제를 변경하여 기능을 테스트해보세요.</p></div><div className="bg-white/20 p-1 rounded-lg flex text-sm"><button onClick={() => setCurrentPlan('BASIC')} className={`px-4 py-2 rounded transition ${currentPlan === 'BASIC' ? 'bg-white text-gray-900 font-bold' : 'text-gray-300'}`}>Basic</button><button onClick={() => setCurrentPlan('PRO')} className={`px-4 py-2 rounded transition ${currentPlan === 'PRO' ? 'bg-indigo-500 text-white font-bold' : 'text-gray-300'}`}>Pro</button></div></div><div className="flex space-x-4 border-b border-gray-200 pb-1"><button onClick={() => setAdminTab('hr')} className={`pb-2 px-1 text-sm font-medium ${adminTab === 'hr' ? 'text-indigo-600 border-b-2 border-indigo-600' : 'text-gray-500'}`}>인사 관리</button><button onClick={() => setAdminTab('subscription')} className={`pb-2 px-1 text-sm font-medium ${adminTab === 'subscription' ? 'text-indigo-600 border-b-2 border-indigo-600' : 'text-gray-500'}`}>구독 정보</button></div>{adminTab === 'hr' ? (<div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm"><div className="p-4 border-b border-gray-100 bg-gray-50 flex justify-between items-center"><h3 className="font-bold text-gray-700">임직원 리스트 ({activeUsers.length}명)</h3><button onClick={() => { setTargetDeptForAdd(teams[0]); setShowAddMemberModal(true); }} className="text-xs bg-indigo-600 text-white px-3 py-1.5 rounded hover:bg-indigo-700">입사자 등록</button></div><div className="max-h-[400px] overflow-y-auto"><table className="w-full text-sm text-left"><thead className="bg-white text-gray-500 border-b border-gray-100 sticky top-0"><tr><th className="px-4 py-2">이름</th><th className="px-4 py-2">부서/직책</th><th className="px-4 py-2">상태</th><th className="px-4 py-2 text-right">관리</th></tr></thead><tbody className="divide-y divide-gray-50">{users.map(u => (<tr key={u.id}><td className="px-4 py-3 font-medium">{u.name}</td><td className="px-4 py-3 text-gray-500">{u.team} {u.role}</td><td className="px-4 py-3">{u.status === 'active' ? <span className="text-green-600 bg-green-50 px-2 py-0.5 rounded text-xs">재직</span> : <span className="text-red-500 bg-red-50 px-2 py-0.5 rounded text-xs">퇴사</span>}</td><td className="px-4 py-3 text-right"><button onClick={() => handleResignMember(u.id)} className="text-gray-400 hover:text-red-500 text-xs underline">퇴사 처리</button></td></tr>))}</tbody></table></div></div>) : (<div className="bg-white p-10 text-center text-gray-500 rounded-xl border border-gray-200 border-dashed"><p className="mb-4">현재 {currentPlan} 플랜 이용 중입니다.</p><button onClick={handleResetData} className="flex items-center mx-auto text-red-500 hover:text-red-700 text-sm font-bold bg-red-50 px-4 py-2 rounded-lg border border-red-200"><Trash2 size={16} className="mr-2"/> 데이터 초기화</button></div>)}</div>);
   const ProFeatureLocked = ({ title }) => (<div className="flex flex-col items-center justify-center h-[500px] bg-gray-50 rounded-xl border-2 border-dashed border-gray-200 text-center p-6 animate-fade-in"><div className="bg-indigo-100 p-4 rounded-full mb-4"><Lock size={48} className="text-indigo-600"/></div><h2 className="text-2xl font-bold text-gray-900 mb-2">{title} 기능은 Pro 플랜 전용입니다.</h2><button onClick={() => { setAdminTab('subscription'); setActiveTab('admin'); setCurrentPlan('PRO'); }} className="bg-indigo-600 text-white px-6 py-3 rounded-xl font-bold text-lg hover:bg-indigo-700 transition shadow-lg mt-4 flex items-center"><Zap size={20} className="mr-2 fill-current"/> Pro 플랜 체험하기</button></div>);
   const DashboardView = () => (<div className="space-y-6 animate-fade-in"><div className="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-xl p-8 text-white shadow-lg text-center"><h2 className="text-3xl font-bold mb-2">2025년 프랜차이즈 목표 달성 현황</h2><p className="text-indigo-100 mb-6">가맹점 200호점, 매출 300억 달성을 위해!</p><div className="flex justify-center gap-8"><div className="bg-white/20 p-4 rounded-lg min-w-[150px]"><div className="text-3xl font-bold">185억</div><div className="text-sm opacity-80">현재 매출</div></div><div className="bg-white/20 p-4 rounded-lg min-w-[150px]"><div className="text-3xl font-bold">142개</div><div className="text-sm opacity-80">가맹점 수</div></div></div></div><div className="grid grid-cols-1 md:grid-cols-2 gap-6"><div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm"><h3 className="font-bold text-gray-700 mb-4">주요 KPI 달성도</h3>{kpis.slice(0, 5).map(kpi => (<div key={kpi.id} className="mb-4 last:mb-0"><div className="flex justify-between text-sm mb-1"><span className="text-gray-600">{kpi.title}</span><span className="font-bold text-indigo-600">{calculateAchievement(kpi)}%</span></div><div className="w-full bg-gray-100 rounded-full h-2"><div className="bg-indigo-500 h-2 rounded-full" style={{width: `${calculateAchievement(kpi)}%`}}></div></div></div>))}</div><div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm flex flex-col items-center justify-center text-center"><BarChart3 size={48} className="text-gray-300 mb-4"/><h3 className="font-bold text-gray-800 text-lg mb-2">성과 분석 대시보드</h3><p className="text-gray-500 text-sm mb-4">현재 영업팀의 신규 출점 속도가 목표 대비 10% 지연되고 있습니다.</p></div></div></div>);
-  const KPIView = () => (<div className="space-y-6 animate-fade-in"><div className="flex justify-between items-center"><h2 className="text-xl font-bold text-gray-800">전사 KPI 관리</h2><button className="bg-indigo-600 text-white px-4 py-2 rounded-lg font-bold text-sm">새 목표 설정</button></div><div className="grid gap-4">{kpis.map(kpi => (<div key={kpi.id} className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm flex justify-between items-center"><div><div className="flex items-center gap-2 mb-1"><Badge color="purple">{kpi.team}</Badge><span className="text-xs text-gray-400">{kpi.type}</span></div><h3 className="font-bold text-lg text-gray-800">{kpi.title}</h3><p className="text-sm text-gray-500">{kpi.description}</p></div><div className="text-right"><div className="text-2xl font-bold text-gray-900">{kpi.current} <span className="text-sm font-normal text-gray-400">/ {kpi.target} {kpi.unit}</span></div><Badge color={kpi.status === 'success' ? 'green' : 'yellow'}>{kpi.status === 'success' ? '달성중' : '진행중'}</Badge></div></div>))}</div></div>);
+  
+  // UPDATED: KPI View with Add/Edit Modal
+  const KPIView = () => {
+    const filteredKpis = kpis.filter(k => k.year === selectedKpiYear);
+    return (
+        <div className="space-y-8 animate-fade-in">
+            <div className="flex justify-between items-center">
+                <div><h2 className="text-xl font-bold text-gray-800">전사 KPI 관리</h2><p className="text-sm text-gray-500">정량(Quant) 및 정성(Qual) 지표를 모두 관리합니다.</p></div>
+                <div className="flex space-x-3">
+                     <div className="relative"><select value={selectedKpiYear} onChange={(e) => setSelectedKpiYear(e.target.value)} className="appearance-none bg-white border border-gray-300 text-gray-700 py-2 px-4 pr-8 rounded-lg font-bold"><option value="2025">2025년</option><option value="2024">2024년</option></select><div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700"><ChevronDown size={16} /></div></div>
+                     <button onClick={() => handleOpenKpiModal()} className="flex items-center space-x-2 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition"><Plus size={18} /><span>새 KPI</span></button>
+                </div>
+            </div>
+            <div className="grid gap-6">
+                {filteredKpis.length > 0 ? filteredKpis.map((kpi) => (
+                    <div 
+                        key={kpi.id} 
+                        className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:border-indigo-300 transition cursor-pointer"
+                        onClick={() => handleOpenKpiModal(kpi)}
+                    >
+                        <div className="flex justify-between">
+                            <div>
+                                <Badge color={kpi.type === 'QUANT' ? 'indigo' : 'orange'}>{kpi.type}</Badge>
+                                <h3 className="text-lg font-bold mt-2">{kpi.title}</h3>
+                                <p className="text-sm text-gray-500">{kpi.description}</p>
+                            </div>
+                            <div className="text-right">
+                                <div className="text-2xl font-bold">{kpi.current}</div>
+                                <div className="text-xs text-gray-400">목표: {kpi.target}</div>
+                            </div>
+                        </div>
+                    </div>
+                )) : <div className="text-center py-12 text-gray-500">등록된 KPI가 없습니다.</div>}
+            </div>
+        </div>
+    );
+  };
+  
   const EvalView = () => (<div className="space-y-6 animate-fade-in"><div className="bg-white p-8 rounded-xl border border-gray-200 text-center"><h2 className="text-xl font-bold text-gray-800 mb-2">2025년 1분기 정기 평가</h2><p className="text-gray-500 mb-6">평가 마감까지 D-10</p><div className="flex justify-center gap-4"><div className="p-4 border rounded-lg w-32"><div className="text-2xl font-bold text-indigo-600">{activeUsers.length}명</div><div className="text-xs text-gray-400">대상</div></div><div className="p-4 border rounded-lg w-32"><div className="text-2xl font-bold text-green-600">5명</div><div className="text-xs text-gray-400">완료</div></div></div></div><div className="bg-white rounded-xl border border-gray-200 p-6"><h3 className="font-bold mb-4">팀별 현황</h3><div className="grid grid-cols-1 md:grid-cols-2 gap-4">{teams.map(t => (<div key={t} className="flex justify-between p-3 bg-gray-50 rounded"><span>{t}</span><span className="text-gray-500 text-sm">진행률 20%</span></div>))}</div></div></div>);
 
   return (
@@ -459,7 +510,33 @@ function NextStepAppContent() {
         {activeTab === 'eval' && (currentPlan === 'PRO' ? <EvalView /> : <ProFeatureLocked title="성과 평가" />)}
       </main>
 
-      {/* Write Modal */}
+      {/* KPI Add/Edit Modal */}
+      {showKpiModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl p-6 animate-fade-in">
+            <h3 className="text-lg font-bold mb-4">{selectedKpiData ? 'KPI 수정' : '새 KPI 등록'}</h3>
+            <div className="space-y-4">
+               <div><label className="block text-sm font-medium text-gray-700 mb-1">KPI 제목</label><input className="w-full border rounded-lg px-3 py-2" value={kpiForm.title} onChange={e=>setKpiForm({...kpiForm, title: e.target.value})} /></div>
+               <div className="grid grid-cols-2 gap-4">
+                   <div><label className="block text-sm font-medium text-gray-700 mb-1">담당 팀</label><select className="w-full border rounded-lg px-3 py-2" value={kpiForm.team} onChange={e=>setKpiForm({...kpiForm, team: e.target.value})}>{teams.map(t=><option key={t} value={t}>{t}</option>)}</select></div>
+                   <div><label className="block text-sm font-medium text-gray-700 mb-1">유형</label><select className="w-full border rounded-lg px-3 py-2" value={kpiForm.type} onChange={e=>setKpiForm({...kpiForm, type: e.target.value})}><option value="QUANT">정량(수치)</option><option value="QUAL">정성(상태)</option></select></div>
+               </div>
+               <div className="grid grid-cols-3 gap-4">
+                   <div><label className="block text-sm font-medium text-gray-700 mb-1">목표값</label><input className="w-full border rounded-lg px-3 py-2" value={kpiForm.target} onChange={e=>setKpiForm({...kpiForm, target: e.target.value})} /></div>
+                   <div><label className="block text-sm font-medium text-gray-700 mb-1">현재값</label><input className="w-full border rounded-lg px-3 py-2" value={kpiForm.current} onChange={e=>setKpiForm({...kpiForm, current: e.target.value})} /></div>
+                   <div><label className="block text-sm font-medium text-gray-700 mb-1">단위</label><input className="w-full border rounded-lg px-3 py-2" value={kpiForm.unit} onChange={e=>setKpiForm({...kpiForm, unit: e.target.value})} /></div>
+               </div>
+               <div><label className="block text-sm font-medium text-gray-700 mb-1">설명</label><textarea className="w-full border rounded-lg px-3 py-2 h-20 resize-none" value={kpiForm.description} onChange={e=>setKpiForm({...kpiForm, description: e.target.value})} /></div>
+            </div>
+            <div className="flex justify-end gap-2 mt-6">
+                <button onClick={() => setShowKpiModal(false)} className="px-4 py-2 text-gray-500">취소</button>
+                <button onClick={handleSaveKpi} className="px-4 py-2 bg-indigo-600 text-white rounded font-bold">저장</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Task Write Modal */}
       {showWriteModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl p-6 animate-fade-in">
