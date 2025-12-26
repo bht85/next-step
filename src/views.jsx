@@ -4,7 +4,8 @@ import {
   Sparkles, BarChart3, Lock, Zap, CheckCircle2, UserMinus, Plus,
   Calendar as CalendarIcon, ChevronLeft, ChevronRight, Repeat, Timer
 } from 'lucide-react';
-import { Badge, GradeBadge } from './components';
+// 🔥 수정된 부분: 파일 경로 뒤에 .jsx를 붙였습니다.
+import { Badge, GradeBadge } from './components.jsx';
 
 export const DashboardView = ({ kpis, tasks, users }) => (
     <div className="space-y-6 animate-fade-in">
@@ -16,7 +17,6 @@ export const DashboardView = ({ kpis, tasks, users }) => (
                <div className="bg-white/20 p-4 rounded-lg min-w-[150px]"><div className="text-3xl font-bold">142개</div><div className="text-sm opacity-80">가맹점 수</div></div>
             </div>
         </div>
-        {/* KPI Summary */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
                <h3 className="font-bold text-gray-700 mb-4">주요 KPI 달성도</h3>
@@ -87,6 +87,51 @@ export const RnRView = ({ users, tasks, rnrViewMode, setRnrViewMode, openWriteMo
           ))}</div>
         )}
       </div>
+    );
+};
+
+export const CalendarView = ({ tasks, users, openDetailModal }) => {
+    const today = new Date();
+    const [filterTeam, setFilterTeam] = useState('ALL');
+    const teams = [...new Set(users.map(u => u.team))].filter(Boolean);
+    const filteredTasks = tasks.filter(task => {
+        if (filterTeam === 'ALL') return true;
+        const owner = users.find(u => u.id === task.ownerId);
+        return owner?.team === filterTeam;
+    });
+
+    return (
+        <div className="space-y-6 animate-fade-in">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center bg-white p-4 rounded-xl border border-gray-200 shadow-sm gap-4">
+                <h2 className="text-lg font-bold text-gray-800 flex items-center"><CalendarIcon className="mr-2 text-indigo-600"/> {today.getFullYear()}년 {today.getMonth()+1}월</h2>
+                <div className="flex items-center gap-3">
+                    <select value={filterTeam} onChange={(e) => setFilterTeam(e.target.value)} className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm font-medium text-gray-700 outline-none"><option value="ALL">전체 조직</option>{teams.map(t => <option key={t} value={t}>{t}</option>)}</select>
+                    <div className="flex gap-1 bg-gray-100 p-1 rounded-lg"><button className="p-1 rounded hover:bg-gray-200"><ChevronLeft size={16}/></button><span className="font-bold text-gray-700 px-2 flex items-center text-sm">Today</span><button className="p-1 rounded hover:bg-gray-200"><ChevronRight size={16}/></button></div>
+                </div>
+            </div>
+            <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                <div className="grid grid-cols-7 text-center bg-gray-50 border-b border-gray-200">{['일', '월', '화', '수', '목', '금', '토'].map(d => <div key={d} className="py-2 text-sm font-bold text-gray-500">{d}</div>)}</div>
+                <div className="grid grid-cols-7 h-[600px] overflow-y-auto">
+                    {Array.from({length: 31}).map((_, i) => {
+                        const day = i + 1;
+                        const dayTasks = filteredTasks.filter((t, idx) => (idx + day) % 7 === 0 || (t.frequency === '매일' && day % 2 === 0)).slice(0, 3);
+                        const isToday = day === today.getDate();
+                        return (
+                            <div key={day} className="border-b border-r border-gray-100 p-2 min-h-[80px] relative hover:bg-gray-50 transition flex flex-col gap-1">
+                                <span className={`text-sm font-medium w-6 h-6 flex items-center justify-center rounded-full ${isToday ? 'bg-indigo-600 text-white' : 'text-gray-700'}`}>{day}</span>
+                                <div className="space-y-1">
+                                    {dayTasks.map(t => {
+                                        const owner = users.find(u => u.id === t.ownerId);
+                                        const color = owner?.team.includes('영업')?'bg-blue-50 text-blue-700':owner?.team.includes('운영')?'bg-green-50 text-green-700':'bg-indigo-50 text-indigo-700';
+                                        return <div key={t.id} className={`text-[10px] px-1.5 py-1 rounded truncate cursor-pointer hover:opacity-80 ${color}`} onClick={(e) => { e.stopPropagation(); openDetailModal(t); }}>{t.title}</div>;
+                                    })}
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+            </div>
+        </div>
     );
 };
 
