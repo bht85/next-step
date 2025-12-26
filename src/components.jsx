@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState } from 'react';
-import { CheckCircle, AlertCircle, X } from 'lucide-react';
+import { CheckCircle, AlertCircle } from 'lucide-react';
 
 export const Badge = ({ children, color = 'blue' }) => {
   const colors = {
@@ -45,7 +45,6 @@ export const ToastProvider = ({ children }) => {
 export const useToast = () => {
     const context = useContext(ToastContext);
     if (!context) {
-        // Fallback for when hook is used outside of provider context in early renders or tests
         return () => {};
     }
     return context;
