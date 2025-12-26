@@ -6,7 +6,7 @@ import {
   History, Phone, Mail, Calendar as CalendarIcon, Repeat, Timer, Target, 
   Link as LinkIcon, TrendingUp, Settings, CreditCard, Shield, Zap, BarChart3, 
   ChevronDown, Award, Star, MessageSquare, PieChart, LogOut, UserMinus, 
-  RefreshCw, Lock, AlignLeft, Hash, Trash2, ChevronLeft, Bell 
+  Briefcase as DeptIcon, RefreshCw, Lock, AlignLeft, Hash, Trash2, ChevronLeft, Bell, Filter 
 } from 'lucide-react';
 import { initializeApp } from "firebase/app";
 import { 
@@ -206,6 +206,7 @@ function NextStepAppContent() {
   const [targetDeptForAdd, setTargetDeptForAdd] = useState("");
   const [isTaskEditing, setIsTaskEditing] = useState(false);
   const [editForm, setEditForm] = useState({ title: "", description: "", timeRequired: "", frequency: "" });
+  const [filterTeam, setFilterTeam] = useState('ALL'); // Calendar Team Filter
   
   // Filters & Inputs
   const [selectedKpiYear, setSelectedKpiYear] = useState('2025');
@@ -331,25 +332,77 @@ function NextStepAppContent() {
     );
   };
 
+  // --- UPDATED: Calendar View with Team Filter ---
   const CalendarView = () => {
       const today = new Date();
+      const currentYear = today.getFullYear();
+      const currentMonth = today.getMonth() + 1;
+      const currentDate = today.getDate();
+
+      // 필터링된 태스크 구하기
+      const filteredTasksForCalendar = tasks.filter(task => {
+          if (filterTeam === 'ALL') return true;
+          const owner = users.find(u => u.id === task.ownerId);
+          return owner?.team === filterTeam;
+      });
+
       return (
           <div className="space-y-6 animate-fade-in">
-              <div className="flex justify-between items-center bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
-                  <h2 className="text-lg font-bold text-gray-800 flex items-center"><CalendarIcon className="mr-2 text-indigo-600"/> {today.getFullYear()}년 {today.getMonth()+1}월 업무 일정</h2>
-                  <div className="flex gap-2"><button className="p-1 rounded hover:bg-gray-100"><ChevronLeft/></button><span className="font-bold text-gray-700">Today</span><button className="p-1 rounded hover:bg-gray-100"><ChevronRight/></button></div>
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-center bg-white p-4 rounded-xl border border-gray-200 shadow-sm gap-4">
+                  <h2 className="text-lg font-bold text-gray-800 flex items-center"><CalendarIcon className="mr-2 text-indigo-600"/> {currentYear}년 {currentMonth}월 업무 일정</h2>
+                  <div className="flex items-center gap-3">
+                      {/* 팀 필터 드롭다운 */}
+                      <select 
+                        value={filterTeam} 
+                        onChange={(e) => setFilterTeam(e.target.value)}
+                        className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm font-medium text-gray-700 outline-none focus:ring-2 focus:ring-indigo-500"
+                      >
+                          <option value="ALL">전체 조직</option>
+                          {teams.map(team => (
+                              <option key={team} value={team}>{team}</option>
+                          ))}
+                      </select>
+                      <div className="flex gap-1 bg-gray-100 p-1 rounded-lg">
+                        <button className="p-1 rounded hover:bg-gray-200 text-gray-500"><ChevronLeft size={16}/></button>
+                        <span className="font-bold text-gray-700 px-2 flex items-center text-sm">Today</span>
+                        <button className="p-1 rounded hover:bg-gray-200 text-gray-500"><ChevronRight size={16}/></button>
+                      </div>
+                  </div>
               </div>
               <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
                   <div className="grid grid-cols-7 text-center bg-gray-50 border-b border-gray-200">{['일', '월', '화', '수', '목', '금', '토'].map(d => <div key={d} className="py-2 text-sm font-bold text-gray-500">{d}</div>)}</div>
-                  <div className="grid grid-cols-7 h-[600px]">
+                  <div className="grid grid-cols-7 h-[600px] overflow-y-auto">
                       {Array.from({length: 31}).map((_, i) => {
                           const day = i + 1;
-                          const dayTasks = tasks.filter((t, idx) => (idx + day) % 7 === 0 || (t.frequency === '매일' && day % 2 === 0)).slice(0, 3);
-                          const isToday = day === today.getDate();
+                          // 필터링된 태스크 사용
+                          const dayTasks = filteredTasksForCalendar.filter((t, idx) => (idx + day) % 7 === 0 || (t.frequency === '매일' && day % 2 === 0)).slice(0, 3);
+                          const isToday = day === currentDate;
                           return (
-                              <div key={day} className="border-b border-r border-gray-100 p-2 min-h-[80px] relative hover:bg-gray-50 transition">
-                                  <span className={`text-sm font-medium ${isToday ? 'bg-indigo-600 text-white w-6 h-6 rounded-full flex items-center justify-center' : 'text-gray-700'}`}>{day}</span>
-                                  <div className="mt-2 space-y-1">{dayTasks.map(t => (<div key={t.id} className="text-[10px] bg-indigo-50 text-indigo-700 px-1 py-0.5 rounded truncate cursor-pointer hover:bg-indigo-100" onClick={() => { setSelectedTask(t); setShowDetailModal(true); }}>{t.title}</div>))}</div>
+                              <div key={day} className="border-b border-r border-gray-100 p-2 min-h-[80px] relative hover:bg-gray-50 transition flex flex-col gap-1">
+                                  <span className={`text-sm font-medium w-6 h-6 flex items-center justify-center rounded-full ${isToday ? 'bg-indigo-600 text-white' : 'text-gray-700'}`}>{day}</span>
+                                  <div className="space-y-1">
+                                      {dayTasks.map(t => {
+                                          const owner = users.find(u => u.id === t.ownerId);
+                                          // 팀별 색상 구분 (간단하게)
+                                          const teamColor = owner?.team.includes('영업') ? 'bg-blue-50 text-blue-700' : 
+                                                            owner?.team.includes('운영') ? 'bg-green-50 text-green-700' :
+                                                            owner?.team.includes('마케팅') ? 'bg-pink-50 text-pink-700' : 'bg-indigo-50 text-indigo-700';
+                                          
+                                          return (
+                                            <div 
+                                                key={t.id} 
+                                                className={`text-[10px] px-1.5 py-1 rounded truncate cursor-pointer hover:opacity-80 transition shadow-sm ${teamColor}`}
+                                                onClick={(e) => { 
+                                                    e.stopPropagation(); 
+                                                    setSelectedTask(t); 
+                                                    setShowDetailModal(true); 
+                                                }}
+                                            >
+                                                {t.title}
+                                            </div>
+                                          );
+                                      })}
+                                  </div>
                               </div>
                           );
                       })}
@@ -433,7 +486,7 @@ function NextStepAppContent() {
           <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl animate-fade-in-up">
             <div className="p-5 border-b border-gray-100 flex justify-between items-start">
               <div className="flex-1"><span className="text-xs font-bold text-indigo-600 mb-1 block">업무 상세 정보</span>{isTaskEditing ? (<input className="w-full text-xl font-bold text-gray-900 border-b-2 border-indigo-200 focus:border-indigo-600 outline-none pb-1" value={editForm.title} onChange={(e) => setEditForm({...editForm, title: e.target.value})}/>) : (<h3 className="text-xl font-bold text-gray-900 leading-snug">{selectedTask.title}</h3>)}</div>
-              <div className="flex items-center ml-2">{!isTaskEditing && (<button onClick={startEditingTask} className="text-gray-400 hover:text-indigo-600 p-1 mr-1 transition"><Edit3 size={18}/></button>)}<button onClick={() => setShowDetailModal(false)} className="text-gray-400 hover:text-gray-600 p-1"><X size={24}/></button></div>
+              <div className="flex items-center ml-2">{!isTaskEditing && (<button onClick={startEditingTask} className="text-gray-400 hover:text-indigo-600 p-1 mr-1 transition"><Edit size={18}/></button>)}<button onClick={() => setShowDetailModal(false)} className="text-gray-400 hover:text-gray-600 p-1"><X size={24}/></button></div>
             </div>
             <div className="p-6 space-y-6">
               <div className="flex items-center justify-between bg-gray-50 p-3 rounded-lg border border-gray-100"><div className="flex items-center space-x-3"><div className="w-10 h-10 bg-white rounded-full flex items-center justify-center text-sm font-bold border border-gray-200 text-gray-600">{getUserInfo(selectedTask.ownerId).name[0]}</div><div><div className="font-bold text-sm text-gray-900">{getUserInfo(selectedTask.ownerId).name}</div><div className="text-xs text-gray-500">{getUserInfo(selectedTask.ownerId).role} | {getUserInfo(selectedTask.ownerId).team}</div></div></div><div className="text-xs font-mono text-gray-400 bg-white px-2 py-1 rounded border border-gray-200">{selectedTask.id}</div></div>
