@@ -31,38 +31,23 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// --- [데이터 복구] 프랜차이즈 시나리오 더미 데이터 (23명 풀세트) ---
+// --- 더미 데이터 (데이터 초기화용) ---
 const initialUsers = [
-  // 1. 대표이사
   { id: 'ceo', name: '김대표', team: '임원실', role: 'CEO', phone: '010-1111-0001', email: 'ceo@franchise.com', status: 'active', joinDate: '2015-03-01' },
-  
-  // 2. 영업팀 (3명)
   { id: 'sales1', name: '박영업', team: '영업팀', role: '팀장', phone: '010-2222-0001', email: 'park.sales@franchise.com', status: 'active', joinDate: '2018-05-10' },
   { id: 'sales2', name: '최매출', team: '영업팀', role: '과장', phone: '010-2222-0002', email: 'choi.sales@franchise.com', status: 'active', joinDate: '2020-01-15' },
   { id: 'sales3', name: '정개척', team: '영업팀', role: '대리', phone: '010-2222-0003', email: 'jung.sales@franchise.com', status: 'active', joinDate: '2022-08-20' },
-
-  // 3. 운영팀 (10명)
   { id: 'ops1', name: '이운영', team: '운영팀', role: '팀장', phone: '010-3333-0001', email: 'lee.ops@franchise.com', status: 'active', joinDate: '2017-11-01' },
   { id: 'ops2', name: '김슈퍼', team: '운영팀', role: 'SV(슈퍼바이저)', phone: '010-3333-0002', email: 'kim.sv@franchise.com', status: 'active', joinDate: '2019-04-05' },
   { id: 'ops3', name: '박관리', team: '운영팀', role: 'SV(슈퍼바이저)', phone: '010-3333-0003', email: 'park.sv@franchise.com', status: 'active', joinDate: '2021-02-12' },
   { id: 'ops4', name: '최매장', team: '운영팀', role: 'SV(슈퍼바이저)', phone: '010-3333-0004', email: 'choi.sv@franchise.com', status: 'active', joinDate: '2021-06-30' },
   { id: 'ops5', name: '정품질', team: '운영팀', role: 'QSC 담당', phone: '010-3333-0005', email: 'jung.qsc@franchise.com', status: 'active', joinDate: '2020-09-15' },
   { id: 'ops6', name: '강교육', team: '운영팀', role: '교육 담당', phone: '010-3333-0006', email: 'kang.edu@franchise.com', status: 'active', joinDate: '2022-01-10' },
-  { id: 'ops7', name: '조순회', team: '운영팀', role: 'SV(슈퍼바이저)', phone: '010-3333-0007', email: 'cho.sv@franchise.com', status: 'active', joinDate: '2023-03-01' },
-  { id: 'ops8', name: '윤해결', team: '운영팀', role: 'SV(슈퍼바이저)', phone: '010-3333-0008', email: 'yoon.sv@franchise.com', status: 'active', joinDate: '2023-05-20' },
-  { id: 'ops9', name: '장매뉴', team: '운영팀', role: '매뉴얼 담당', phone: '010-3333-0009', email: 'jang.manual@franchise.com', status: 'active', joinDate: '2024-01-02' },
-  { id: 'ops10', name: '한신입', team: '운영팀', role: '사원', phone: '010-3333-0010', email: 'han.new@franchise.com', status: 'active', joinDate: '2025-01-01' },
-
-  // 4. 마케팅팀 (2명)
   { id: 'mkt1', name: '임마케', team: '마케팅팀', role: '팀장', phone: '010-4444-0001', email: 'lim.mkt@franchise.com', status: 'active', joinDate: '2019-12-01' },
   { id: 'mkt2', name: '송홍보', team: '마케팅팀', role: '대리', phone: '010-4444-0002', email: 'song.pr@franchise.com', status: 'active', joinDate: '2023-07-01' },
-
-  // 5. 상품개발팀 (3명)
   { id: 'rnd1', name: '최맛나', team: '상품개발팀', role: '팀장(셰프)', phone: '010-5555-0001', email: 'choi.chef@franchise.com', status: 'active', joinDate: '2016-08-20' },
   { id: 'rnd2', name: '김연구', team: '상품개발팀', role: '연구원', phone: '010-5555-0002', email: 'kim.rnd@franchise.com', status: 'active', joinDate: '2021-11-11' },
   { id: 'rnd3', name: '이소스', team: '상품개발팀', role: '연구원', phone: '010-5555-0003', email: 'lee.sauce@franchise.com', status: 'active', joinDate: '2024-02-15' },
-
-  // 6. 경영지원팀 (4명)
   { id: 'fin1', name: '나재무', team: '경영지원팀', role: '팀장(CFO)', phone: '010-6666-0001', email: 'na.cfo@franchise.com', status: 'active', joinDate: '2017-01-05' },
   { id: 'fin2', name: '조회계', team: '경영지원팀', role: '재무 대리', phone: '010-6666-0002', email: 'cho.acct@franchise.com', status: 'active', joinDate: '2022-04-01' },
   { id: 'hr1', name: '박인사', team: '경영지원팀', role: '인사 과장', phone: '010-6666-0003', email: 'park.hr@franchise.com', status: 'active', joinDate: '2020-10-10' },
@@ -196,38 +181,33 @@ function NextStepAppContent() {
   const [showWriteModal, setShowWriteModal] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false); 
   const [showDetailModal, setShowDetailModal] = useState(false); 
-  const [showKpiModal, setShowKpiModal] = useState(false); // New KPI Modal State
+  const [showKpiModal, setShowKpiModal] = useState(false);
   const [showAddMemberModal, setShowAddMemberModal] = useState(false);
   const [transferModalOpen, setTransferModalOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState(null); 
-  const [selectedKpiData, setSelectedKpiData] = useState(null); // For Editing KPI
+  const [selectedKpiData, setSelectedKpiData] = useState(null); 
   const [rnrViewMode, setRnrViewMode] = useState('team'); 
   const [isOrgEditMode, setIsOrgEditMode] = useState(false);
   const [adminTab, setAdminTab] = useState('hr');
   const [targetDeptForAdd, setTargetDeptForAdd] = useState("");
   const [isTaskEditing, setIsTaskEditing] = useState(false);
   const [editForm, setEditForm] = useState({ title: "", description: "", timeRequired: "", frequency: "" });
+  const [filterTeam, setFilterTeam] = useState('ALL'); 
   
   // Filters & Inputs
   const [selectedKpiYear, setSelectedKpiYear] = useState('2025');
   const [selectedEvalPeriod, setSelectedEvalPeriod] = useState('2025 1Q');
   const [selectedEvalUser, setSelectedEvalUser] = useState('sales1'); 
   const [evalViewType, setEvalViewType] = useState('team');
-  
-  // Task Form State
   const [newDocTitle, setNewDocTitle] = useState("");
   const [newDocContent, setNewDocContent] = useState("");
   const [newDocTime, setNewDocTime] = useState(""); 
   const [newDocFreq, setNewDocFreq] = useState("");
   const [selectedKpi, setSelectedKpi] = useState(""); 
   const [newTaskOwnerId, setNewTaskOwnerId] = useState(""); 
-  
-  // KPI Form State
-  const [kpiForm, setKpiForm] = useState({ title: "", team: "", type: "QUANT", target: "", current: "", unit: "", description: "" });
-
-  // Member Form State
   const [newMemberName, setNewMemberName] = useState("");
   const [newMemberRole, setNewMemberRole] = useState("");
+  const [kpiForm, setKpiForm] = useState({ title: "", team: "", type: "QUANT", target: "", current: "", unit: "", description: "" });
 
   // Helpers
   const activeUsers = useMemo(() => users ? users.filter(u => u && u.status !== 'resigned') : [], [users]);
@@ -281,7 +261,6 @@ function NextStepAppContent() {
     toast(`업무가 등록되었습니다. (${newTaskId})`, 'success');
   };
 
-  // KPI Handlers
   const handleOpenKpiModal = (kpi = null) => {
       if (kpi) {
           setSelectedKpiData(kpi);
@@ -298,15 +277,12 @@ function NextStepAppContent() {
       
       let updatedKpis;
       if (selectedKpiData) {
-          // Update Existing
            updatedKpis = kpis.map(k => k.id === selectedKpiData.id ? { ...k, ...kpiForm } : k);
            toast("KPI가 수정되었습니다.", 'success');
       } else {
-          // Create New
           const newId = `KPI-${getTeamCode(kpiForm.team)}-${Date.now().toString().slice(-4)}`;
           const newKpi = { id: newId, year: selectedKpiYear, ...kpiForm, status: 'warning' };
           updatedKpis = [newKpi, ...kpis];
-          
           try { await addDoc(collection(db, "kpis"), newKpi); } catch (e) { console.log("DB Error (Local OK)"); }
           toast("새 KPI가 등록되었습니다.", 'success');
       }
@@ -342,6 +318,11 @@ function NextStepAppContent() {
       setIsTaskEditing(false); 
       toast("수정되었습니다.", 'success'); 
   };
+  
+  const startEditingTask = () => {
+    setEditForm({ title: selectedTask.title, description: selectedTask.description, timeRequired: selectedTask.timeRequired, frequency: selectedTask.frequency });
+    setIsTaskEditing(true);
+  };
 
   const handleProFeatureClick = () => { if (currentPlan === 'BASIC') setShowUpgradeModal(true); };
 
@@ -349,6 +330,7 @@ function NextStepAppContent() {
   const NavigationBar = () => {
     const menuItems = [
       { id: 'dashboard', label: '대시보드', icon: LayoutDashboard, proOnly: true },
+      // { id: 'calendar', label: '일정', icon: CalendarIcon, proOnly: false }, // 일정 탭 제거
       { id: 'rnr', label: '팀 R&R', icon: Users, proOnly: false },
       { id: 'org', label: '조직도', icon: Network, proOnly: false },
       { id: 'kpi', label: 'KPI 관리', icon: Target, proOnly: true },
