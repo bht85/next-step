@@ -3,7 +3,7 @@ import {
   Users, FileText, CheckSquare, ChevronRight, Plus, Search, Briefcase, 
   ArrowRight, Save, Clock, LayoutDashboard, Network, Edit3, UserPlus, 
   AlertCircle, CheckCircle2, Paperclip, ArrowRightLeft, MoreHorizontal, X, 
-  History, Phone, Mail, Calendar as CalendarIcon, Sparkles, Loader2, Repeat, Timer, Target, 
+  History, Phone, Mail, Calendar as CalendarIcon, Repeat, Timer, Target, 
   Link as LinkIcon, TrendingUp, Settings, CreditCard, Shield, Zap, BarChart3, 
   ChevronDown, Award, Star, MessageSquare, PieChart, LogOut, UserMinus, 
   Briefcase as DeptIcon, RefreshCw, Lock, AlignLeft, Hash, Trash2, ChevronLeft, Bell 
@@ -98,8 +98,6 @@ const getTeamCode = (teamName) => {
     return 'CO';
 };
 
-const generateAIContent = async (prompt) => new Promise(r => setTimeout(() => r("[Pro 기능] AI가 작성한 스마트한 내용이 여기에 표시됩니다."), 1000));
-
 // --- Toast Notification Component (알림창) ---
 const ToastContext = createContext();
 const ToastProvider = ({ children }) => {
@@ -146,6 +144,7 @@ function NextStepAppContent() {
   const [reviews, setReviews] = useState(() => JSON.parse(localStorage.getItem('ns_reviews_v2')) || []);
   const [orgData, setOrgData] = useState(() => JSON.parse(localStorage.getItem('ns_orgData_v2')) || initialOrgChart);
 
+  // Sync to LocalStorage
   useEffect(() => { localStorage.setItem('ns_users_v2', JSON.stringify(users)); }, [users]);
   useEffect(() => { localStorage.setItem('ns_tasks_v2', JSON.stringify(tasks)); }, [tasks]);
   useEffect(() => { localStorage.setItem('ns_kpis_v2', JSON.stringify(kpis)); }, [kpis]);
@@ -179,10 +178,6 @@ function NextStepAppContent() {
   const [newTaskOwnerId, setNewTaskOwnerId] = useState(""); 
   const [newMemberName, setNewMemberName] = useState("");
   const [newMemberRole, setNewMemberRole] = useState("");
-  const [isAiWriting, setIsAiWriting] = useState(false);
-  const [aiInsightOpen, setAiInsightOpen] = useState(false);
-  const [aiInsightResult, setAiInsightResult] = useState("");
-  const [isAiLoading, setIsAiLoading] = useState(false);
 
   // Helpers
   const activeUsers = useMemo(() => users ? users.filter(u => u && u.status !== 'resigned') : [], [users]);
@@ -265,8 +260,7 @@ function NextStepAppContent() {
       toast("수정되었습니다.", 'success'); 
   };
 
-  const handleAiDraft = async () => { if (!newDocTitle) return toast("제목을 입력하세요", 'error'); setIsAiWriting(true); const r = await generateAIContent(`제목: ${newDocTitle}`); setNewDocContent(r); setIsAiWriting(false); };
-  const handleAiInsight = async () => { setAiInsightOpen(true); setIsAiLoading(true); const r = await generateAIContent("분석"); setAiInsightResult(r); setIsAiLoading(false); };
+  const handleProFeatureClick = () => { if (currentPlan === 'BASIC') setShowUpgradeModal(true); };
 
   /* --- Views --- */
   const NavigationBar = () => {
@@ -345,7 +339,7 @@ function NextStepAppContent() {
   
   const AdminView = () => (<div className="space-y-6 animate-fade-in"><div className="bg-gradient-to-r from-gray-900 to-gray-800 rounded-xl p-6 text-white shadow-lg flex justify-between items-center"><div><h2 className="text-xl font-bold flex items-center"><Settings className="mr-2"/> 관리자 설정 (Demo)</h2><p className="text-gray-400 text-sm">요금제를 변경하여 기능을 테스트해보세요.</p></div><div className="bg-white/20 p-1 rounded-lg flex text-sm"><button onClick={() => setCurrentPlan('BASIC')} className={`px-4 py-2 rounded transition ${currentPlan === 'BASIC' ? 'bg-white text-gray-900 font-bold' : 'text-gray-300'}`}>Basic</button><button onClick={() => setCurrentPlan('PRO')} className={`px-4 py-2 rounded transition ${currentPlan === 'PRO' ? 'bg-indigo-500 text-white font-bold' : 'text-gray-300'}`}>Pro</button></div></div><div className="flex space-x-4 border-b border-gray-200 pb-1"><button onClick={() => setAdminTab('hr')} className={`pb-2 px-1 text-sm font-medium ${adminTab === 'hr' ? 'text-indigo-600 border-b-2 border-indigo-600' : 'text-gray-500'}`}>인사 관리</button><button onClick={() => setAdminTab('subscription')} className={`pb-2 px-1 text-sm font-medium ${adminTab === 'subscription' ? 'text-indigo-600 border-b-2 border-indigo-600' : 'text-gray-500'}`}>구독 정보</button></div>{adminTab === 'hr' ? (<div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm"><div className="p-4 border-b border-gray-100 bg-gray-50 flex justify-between items-center"><h3 className="font-bold text-gray-700">임직원 리스트 ({activeUsers.length}명)</h3><button onClick={() => { setTargetDeptForAdd(teams[0]); setShowAddMemberModal(true); }} className="text-xs bg-indigo-600 text-white px-3 py-1.5 rounded hover:bg-indigo-700">입사자 등록</button></div><div className="max-h-[400px] overflow-y-auto"><table className="w-full text-sm text-left"><thead className="bg-white text-gray-500 border-b border-gray-100 sticky top-0"><tr><th className="px-4 py-2">이름</th><th className="px-4 py-2">부서/직책</th><th className="px-4 py-2">상태</th><th className="px-4 py-2 text-right">관리</th></tr></thead><tbody className="divide-y divide-gray-50">{users.map(u => (<tr key={u.id}><td className="px-4 py-3 font-medium">{u.name}</td><td className="px-4 py-3 text-gray-500">{u.team} {u.role}</td><td className="px-4 py-3">{u.status === 'active' ? <span className="text-green-600 bg-green-50 px-2 py-0.5 rounded text-xs">재직</span> : <span className="text-red-500 bg-red-50 px-2 py-0.5 rounded text-xs">퇴사</span>}</td><td className="px-4 py-3 text-right"><button onClick={() => handleResignMember(u.id)} className="text-gray-400 hover:text-red-500 text-xs underline">퇴사 처리</button></td></tr>))}</tbody></table></div></div>) : (<div className="bg-white p-10 text-center text-gray-500 rounded-xl border border-gray-200 border-dashed"><p className="mb-4">현재 {currentPlan} 플랜 이용 중입니다.</p><button onClick={handleResetData} className="flex items-center mx-auto text-red-500 hover:text-red-700 text-sm font-bold bg-red-50 px-4 py-2 rounded-lg border border-red-200"><Trash2 size={16} className="mr-2"/> 데이터 초기화</button></div>)}</div>);
   const ProFeatureLocked = ({ title }) => (<div className="flex flex-col items-center justify-center h-[500px] bg-gray-50 rounded-xl border-2 border-dashed border-gray-200 text-center p-6 animate-fade-in"><div className="bg-indigo-100 p-4 rounded-full mb-4"><Lock size={48} className="text-indigo-600"/></div><h2 className="text-2xl font-bold text-gray-900 mb-2">{title} 기능은 Pro 플랜 전용입니다.</h2><button onClick={() => { setAdminTab('subscription'); setActiveTab('admin'); setCurrentPlan('PRO'); }} className="bg-indigo-600 text-white px-6 py-3 rounded-xl font-bold text-lg hover:bg-indigo-700 transition shadow-lg mt-4 flex items-center"><Zap size={20} className="mr-2 fill-current"/> Pro 플랜 체험하기</button></div>);
-  const DashboardView = () => (<div className="space-y-6 animate-fade-in"><div className="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-xl p-8 text-white shadow-lg text-center"><h2 className="text-3xl font-bold mb-2">2025년 프랜차이즈 목표 달성 현황</h2><p className="text-indigo-100 mb-6">가맹점 200호점, 매출 300억 달성을 위해!</p><div className="flex justify-center gap-8"><div className="bg-white/20 p-4 rounded-lg min-w-[150px]"><div className="text-3xl font-bold">185억</div><div className="text-sm opacity-80">현재 매출</div></div><div className="bg-white/20 p-4 rounded-lg min-w-[150px]"><div className="text-3xl font-bold">142개</div><div className="text-sm opacity-80">가맹점 수</div></div></div></div><div className="grid grid-cols-1 md:grid-cols-2 gap-6"><div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm"><h3 className="font-bold text-gray-700 mb-4">주요 KPI 달성도</h3>{kpis.slice(0, 5).map(kpi => (<div key={kpi.id} className="mb-4 last:mb-0"><div className="flex justify-between text-sm mb-1"><span className="text-gray-600">{kpi.title}</span><span className="font-bold text-indigo-600">{calculateAchievement(kpi)}%</span></div><div className="w-full bg-gray-100 rounded-full h-2"><div className="bg-indigo-500 h-2 rounded-full" style={{width: `${calculateAchievement(kpi)}%`}}></div></div></div>))}</div><div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm flex flex-col items-center justify-center text-center"><Sparkles size={48} className="text-yellow-400 mb-4"/><h3 className="font-bold text-gray-800 text-lg mb-2">AI 인사이트</h3><p className="text-gray-500 text-sm mb-4">현재 영업팀의 신규 출점 속도가 목표 대비 10% 지연되고 있습니다.<br/>마케팅 프로모션과 연계하여 가맹 문의를 늘려보세요.</p><button className="text-indigo-600 font-bold text-sm hover:underline">상세 분석 보기</button></div></div></div>);
+  const DashboardView = () => (<div className="space-y-6 animate-fade-in"><div className="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-xl p-8 text-white shadow-lg text-center"><h2 className="text-3xl font-bold mb-2">2025년 프랜차이즈 목표 달성 현황</h2><p className="text-indigo-100 mb-6">가맹점 200호점, 매출 300억 달성을 위해!</p><div className="flex justify-center gap-8"><div className="bg-white/20 p-4 rounded-lg min-w-[150px]"><div className="text-3xl font-bold">185억</div><div className="text-sm opacity-80">현재 매출</div></div><div className="bg-white/20 p-4 rounded-lg min-w-[150px]"><div className="text-3xl font-bold">142개</div><div className="text-sm opacity-80">가맹점 수</div></div></div></div><div className="grid grid-cols-1 md:grid-cols-2 gap-6"><div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm"><h3 className="font-bold text-gray-700 mb-4">주요 KPI 달성도</h3>{kpis.slice(0, 5).map(kpi => (<div key={kpi.id} className="mb-4 last:mb-0"><div className="flex justify-between text-sm mb-1"><span className="text-gray-600">{kpi.title}</span><span className="font-bold text-indigo-600">{calculateAchievement(kpi)}%</span></div><div className="w-full bg-gray-100 rounded-full h-2"><div className="bg-indigo-500 h-2 rounded-full" style={{width: `${calculateAchievement(kpi)}%`}}></div></div></div>))}</div><div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm flex flex-col items-center justify-center text-center"><Sparkles size={48} className="text-yellow-400 mb-4"/><h3 className="font-bold text-gray-800 text-lg mb-2">AI 인사이트 (준비중)</h3><p className="text-gray-500 text-sm mb-4">현재 영업팀의 신규 출점 속도가 목표 대비 10% 지연되고 있습니다.</p></div></div></div>);
   const KPIView = () => (<div className="space-y-6 animate-fade-in"><div className="flex justify-between items-center"><h2 className="text-xl font-bold text-gray-800">전사 KPI 관리</h2><button className="bg-indigo-600 text-white px-4 py-2 rounded-lg font-bold text-sm">새 목표 설정</button></div><div className="grid gap-4">{kpis.map(kpi => (<div key={kpi.id} className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm flex justify-between items-center"><div><div className="flex items-center gap-2 mb-1"><Badge color="purple">{kpi.team}</Badge><span className="text-xs text-gray-400">{kpi.type}</span></div><h3 className="font-bold text-lg text-gray-800">{kpi.title}</h3><p className="text-sm text-gray-500">{kpi.description}</p></div><div className="text-right"><div className="text-2xl font-bold text-gray-900">{kpi.current} <span className="text-sm font-normal text-gray-400">/ {kpi.target} {kpi.unit}</span></div><Badge color={kpi.status === 'success' ? 'green' : 'yellow'}>{kpi.status === 'success' ? '달성중' : '진행중'}</Badge></div></div>))}</div></div>);
   const EvalView = () => (<div className="space-y-6 animate-fade-in"><div className="bg-white p-8 rounded-xl border border-gray-200 text-center"><h2 className="text-xl font-bold text-gray-800 mb-2">2025년 1분기 정기 평가</h2><p className="text-gray-500 mb-6">평가 마감까지 D-10</p><div className="flex justify-center gap-4"><div className="p-4 border rounded-lg w-32"><div className="text-2xl font-bold text-indigo-600">{activeUsers.length}명</div><div className="text-xs text-gray-400">대상</div></div><div className="p-4 border rounded-lg w-32"><div className="text-2xl font-bold text-green-600">5명</div><div className="text-xs text-gray-400">완료</div></div></div></div><div className="bg-white rounded-xl border border-gray-200 p-6"><h3 className="font-bold mb-4">팀별 현황</h3><div className="grid grid-cols-1 md:grid-cols-2 gap-4">{teams.map(t => (<div key={t} className="flex justify-between p-3 bg-gray-50 rounded"><span>{t}</span><span className="text-gray-500 text-sm">진행률 20%</span></div>))}</div></div></div>);
 
@@ -380,7 +374,7 @@ function NextStepAppContent() {
                <div><label className="block text-sm font-medium text-gray-700 mb-1">관련 KPI</label><select value={selectedKpi} onChange={(e) => setSelectedKpi(e.target.value)} className="w-full border rounded-lg px-3 py-2"><option value="">선택 안함 (일반 업무)</option>{kpis.filter(k=>k.year==='2025').map(k=><option key={k.id} value={k.id}>[{k.team}] {k.title}</option>)}</select></div>
                <div><label className="block text-sm font-medium text-gray-700 mb-1">업무 제목</label><input type="text" value={newDocTitle} onChange={(e) => setNewDocTitle(e.target.value)} className="w-full border rounded-lg px-3 py-2" placeholder="예: 매장 순회 점검" /></div>
                <div className="grid grid-cols-2 gap-4"><div><label className="block text-sm font-medium text-gray-700 mb-1">소요 시간</label><input type="text" value={newDocTime} onChange={(e) => setNewDocTime(e.target.value)} className="w-full border rounded-lg px-3 py-2" placeholder="2H" /></div><div><label className="block text-sm font-medium text-gray-700 mb-1">빈도</label><input type="text" value={newDocFreq} onChange={(e) => setNewDocFreq(e.target.value)} className="w-full border rounded-lg px-3 py-2" placeholder="매주" /></div></div>
-               <div><div className="flex justify-between items-center mb-1"><label className="block text-sm font-medium text-gray-700">세부 내용</label><button onClick={handleAiDraft} disabled={isAiWriting} className="text-xs bg-indigo-50 text-indigo-700 px-2 py-1 rounded font-bold">{isAiWriting ? "작성 중..." : "AI 초안 작성"}</button></div><textarea value={newDocContent} onChange={(e) => setNewDocContent(e.target.value)} className="w-full border rounded-lg px-3 py-2 h-24 resize-none" /></div>
+               <div><div className="flex justify-between items-center mb-1"><label className="block text-sm font-medium text-gray-700">세부 내용</label></div><textarea value={newDocContent} onChange={(e) => setNewDocContent(e.target.value)} className="w-full border rounded-lg px-3 py-2 h-24 resize-none" /></div>
             </div>
             <div className="p-4 bg-gray-50 rounded-b-2xl flex justify-end space-x-3 -mx-6 -mb-6 mt-6"><button onClick={() => setShowWriteModal(false)} className="px-4 py-2 text-gray-600 hover:bg-gray-200 rounded-lg">취소</button><button onClick={handleSaveTask} className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 flex items-center space-x-2"><Save size={18} /><span>저장</span></button></div>
           </div>
@@ -416,15 +410,19 @@ function NextStepAppContent() {
            <div className="bg-white rounded-2xl w-full max-w-md p-6"><h3 className="text-lg font-bold mb-4">업무 이관</h3><div className="grid gap-2 max-h-60 overflow-y-auto">{users.filter(u=>u.id!==selectedTask.ownerId && u.status!=='resigned').map(u=>(<button key={u.id} onClick={()=>handleTransfer(u.id)} className="p-3 border rounded hover:bg-gray-50 text-left w-full flex justify-between"><span>{u.name}</span><span className="text-gray-400 text-xs">{u.team}</span></button>))}</div><button onClick={()=>setTransferModalOpen(false)} className="mt-4 w-full py-2 text-gray-500">취소</button></div>
         </div>
       )}
+      
+      <ToastProvider>
+        {/* Placeholder for future toast usage */}
+      </ToastProvider>
     </div>
   );
 }
 
-// Wrap main logic in a sub-component to use Toast Context
-export default function NextStepApp() {
-    return (
-        <ToastProvider>
-            <NextStepAppContent />
-        </ToastProvider>
-    );
+// Wrapped App
+function NextStepAppWrapper() {
+  return (
+    <ToastProvider>
+      <NextStepApp />
+    </ToastProvider>
+  );
 }
