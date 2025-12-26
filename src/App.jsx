@@ -207,7 +207,6 @@ function NextStepAppContent() {
   const [targetDeptForAdd, setTargetDeptForAdd] = useState("");
   const [isTaskEditing, setIsTaskEditing] = useState(false);
   const [editForm, setEditForm] = useState({ title: "", description: "", timeRequired: "", frequency: "" });
-  const [filterTeam, setFilterTeam] = useState('ALL'); 
   
   // Filters & Inputs
   const [selectedKpiYear, setSelectedKpiYear] = useState('2025');
@@ -235,7 +234,7 @@ function NextStepAppContent() {
   const teams = useMemo(() => activeUsers.length > 0 ? [...new Set(activeUsers.map(u => u.team))].filter(Boolean) : [], [activeUsers]);
   const years = useMemo(() => kpis ? [...new Set(kpis.map(k => k.year))].sort().reverse() : ['2025'], [kpis]);
 
-  const getUserInfo = (id) => users.find(u => u.id === id) || { name: '미정', role: '', team: '' };
+  const getUserInfo = (id) => users.find(u => u.id === id) || { name: '미정', role: '-', team: '-' };
   const getKpiInfo = (kpiId) => kpis.find(k => k.id === kpiId);
   const calculateAchievement = (kpi) => {
     if (kpi.type === 'QUAL') return 0;
@@ -350,7 +349,6 @@ function NextStepAppContent() {
   const NavigationBar = () => {
     const menuItems = [
       { id: 'dashboard', label: '대시보드', icon: LayoutDashboard, proOnly: true },
-      { id: 'calendar', label: '일정', icon: CalendarIcon, proOnly: false },
       { id: 'rnr', label: '팀 R&R', icon: Users, proOnly: false },
       { id: 'org', label: '조직도', icon: Network, proOnly: false },
       { id: 'kpi', label: 'KPI 관리', icon: Target, proOnly: true },
@@ -371,59 +369,6 @@ function NextStepAppContent() {
         </div>
       </div>
     );
-  };
-
-  const CalendarView = () => {
-      const today = new Date();
-      const currentYear = today.getFullYear();
-      const currentMonth = today.getMonth() + 1;
-      const currentDate = today.getDate();
-
-      const filteredTasksForCalendar = tasks.filter(task => {
-          if (filterTeam === 'ALL') return true;
-          const owner = users.find(u => u.id === task.ownerId);
-          return owner?.team === filterTeam;
-      });
-
-      return (
-          <div className="space-y-6 animate-fade-in">
-              <div className="flex flex-col md:flex-row justify-between items-start md:items-center bg-white p-4 rounded-xl border border-gray-200 shadow-sm gap-4">
-                  <h2 className="text-lg font-bold text-gray-800 flex items-center"><CalendarIcon className="mr-2 text-indigo-600"/> {currentYear}년 {currentMonth}월 업무 일정</h2>
-                  <div className="flex items-center gap-3">
-                      <select value={filterTeam} onChange={(e) => setFilterTeam(e.target.value)} className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm font-medium text-gray-700 outline-none focus:ring-2 focus:ring-indigo-500">
-                          <option value="ALL">전체 조직</option>{teams.map(team => (<option key={team} value={team}>{team}</option>))}
-                      </select>
-                      <div className="flex gap-1 bg-gray-100 p-1 rounded-lg"><button className="p-1 rounded hover:bg-gray-200 text-gray-500"><ChevronLeft size={16}/></button><span className="font-bold text-gray-700 px-2 flex items-center text-sm">Today</span><button className="p-1 rounded hover:bg-gray-200 text-gray-500"><ChevronRight size={16}/></button></div>
-                  </div>
-              </div>
-              <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-                  <div className="grid grid-cols-7 text-center bg-gray-50 border-b border-gray-200">{['일', '월', '화', '수', '목', '금', '토'].map(d => <div key={d} className="py-2 text-sm font-bold text-gray-500">{d}</div>)}</div>
-                  <div className="grid grid-cols-7 h-[600px] overflow-y-auto">
-                      {Array.from({length: 31}).map((_, i) => {
-                          const day = i + 1;
-                          const dayTasks = filteredTasksForCalendar.filter((t, idx) => (idx + day) % 7 === 0 || (t.frequency === '매일' && day % 2 === 0)).slice(0, 3);
-                          const isToday = day === currentDate;
-                          return (
-                              <div key={day} className="border-b border-r border-gray-100 p-2 min-h-[80px] relative hover:bg-gray-50 transition flex flex-col gap-1">
-                                  <span className={`text-sm font-medium w-6 h-6 flex items-center justify-center rounded-full ${isToday ? 'bg-indigo-600 text-white' : 'text-gray-700'}`}>{day}</span>
-                                  <div className="space-y-1">
-                                      {dayTasks.map(t => {
-                                          const owner = users.find(u => u.id === t.ownerId);
-                                          const teamColor = owner?.team.includes('영업') ? 'bg-blue-50 text-blue-700' : owner?.team.includes('운영') ? 'bg-green-50 text-green-700' : owner?.team.includes('마케팅') ? 'bg-pink-50 text-pink-700' : 'bg-indigo-50 text-indigo-700';
-                                          return (
-                                            <div key={t.id} className={`text-[10px] px-1.5 py-1 rounded truncate cursor-pointer hover:opacity-80 transition shadow-sm ${teamColor}`} onClick={(e) => { e.stopPropagation(); setSelectedTask(t); setShowDetailModal(true); }}>
-                                                {t.title}
-                                            </div>
-                                          );
-                                      })}
-                                  </div>
-                              </div>
-                          );
-                      })}
-                  </div>
-              </div>
-          </div>
-      );
   };
 
   const RnRView = () => {
@@ -504,7 +449,6 @@ function NextStepAppContent() {
         {activeTab === 'rnr' && <RnRView />}
         {activeTab === 'org' && <OrgChartView />}
         {activeTab === 'admin' && <AdminView />}
-        {activeTab === 'calendar' && <CalendarView />}
         {activeTab === 'dashboard' && (currentPlan === 'PRO' ? <DashboardView /> : <ProFeatureLocked title="대시보드" />)}
         {activeTab === 'kpi' && (currentPlan === 'PRO' ? <KPIView /> : <ProFeatureLocked title="KPI 목표 관리" />)}
         {activeTab === 'eval' && (currentPlan === 'PRO' ? <EvalView /> : <ProFeatureLocked title="성과 평가" />)}
